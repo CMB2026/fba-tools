@@ -137,6 +137,16 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 .placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:12px;color:var(--text-muted);font-size:14px;text-align:center}
 .placeholder i{font-size:36px;opacity:.3}
 
+/* Produktbild */
+.prod-img-card{background:var(--surface);border:.5px solid var(--border);border-radius:10px;margin-bottom:.875rem;overflow:hidden}
+.prod-img-empty{display:flex;align-items:center;justify-content:center;gap:10px;padding:1rem;cursor:pointer;border:1.5px dashed var(--border-strong);border-radius:10px;transition:border-color .15s,background .15s}
+.prod-img-empty:hover{border-color:var(--accent);background:var(--accent-bg)}
+.prod-img-empty i{font-size:20px;color:var(--text-muted)}
+.prod-img-empty span{font-size:12px;color:var(--text-muted)}
+.prod-img-filled{display:none;position:relative}
+.prod-img-filled img{width:100%;max-height:220px;object-fit:contain;display:block;background:var(--surface-muted);padding:.5rem}
+.prod-img-clear{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:none;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1}
+
 /* ════════════════════════════
    TAB 2 — SZENARIEN
 ════════════════════════════ */
@@ -258,7 +268,10 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
   .panel-left{display:none}
   .panel-right{padding:0}
   body{background:white;color:black}
-  .ampel-card,.chart-card,.breakdown,.monthly-block,.notes-section{break-inside:avoid}
+  .ampel-card,.chart-card,.breakdown,.monthly-block,.notes-section,.prod-img-card{break-inside:avoid}
+  .prod-img-empty{display:none!important}
+  .prod-img-filled{display:block!important}
+  .prod-img-clear{display:none!important}
   @page{margin:1.5cm}
   .sup-input:not(.url-input){border:none;background:transparent;padding:0}
   .url-input{display:none!important}
@@ -437,6 +450,18 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
 
   <!-- RIGHT: results -->
   <div class="panel-right">
+
+    <!-- Produktbild -->
+    <div class="prod-img-card" id="prod_img_card">
+      <div class="prod-img-empty" id="prod_img_empty" onclick="document.getElementById('prod_img_card').focus()" title="Bild einfügen: Screenshot kopieren, dann Strg+V">
+        <i class="ti ti-photo"></i>
+        <span>Produktbild einfügen — Screenshot kopieren &amp; <strong>Strg+V</strong> drücken</span>
+      </div>
+      <div class="prod-img-filled" id="prod_img_filled">
+        <img id="prod_img" src="" alt="Produktbild">
+        <button class="prod-img-clear" onclick="clearProductImage()" title="Bild entfernen">✕</button>
+      </div>
+    </div>
 
     <div id="placeholder" class="placeholder">
       <i class="ti ti-calculator"></i>
@@ -756,6 +781,34 @@ function updateSeg(i) {
     tbody.appendChild(tr);
   }
 })();
+
+/* ─────────── PRODUKTBILD (PASTE) ─────────── */
+document.addEventListener('paste', function(e) {
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.startsWith('image/')) {
+      const blob = items[i].getAsFile();
+      const reader = new FileReader();
+      reader.onload = function(ev) { showProductImage(ev.target.result); };
+      reader.readAsDataURL(blob);
+      e.preventDefault();
+      break;
+    }
+  }
+});
+
+function showProductImage(dataUrl) {
+  document.getElementById('prod_img').src = dataUrl;
+  document.getElementById('prod_img_empty').style.display = 'none';
+  document.getElementById('prod_img_filled').style.display = 'block';
+}
+
+function clearProductImage() {
+  document.getElementById('prod_img').src = '';
+  document.getElementById('prod_img_filled').style.display = 'none';
+  document.getElementById('prod_img_empty').style.display = 'flex';
+}
 
 function updateMLink(inp) {
   const a = inp.nextElementSibling;
