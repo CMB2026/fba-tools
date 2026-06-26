@@ -210,6 +210,17 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 .empty-c{color:var(--text-muted)!important;font-weight:400!important}
 .sz-empty{text-align:center;padding:1.5rem;font-size:12px;color:var(--text-muted)}
 
+/* ── SUCHVOLUMEN ── */
+.sv-section{margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:.5px solid var(--border)}
+.sv-top-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.sv-top-grid .field-full{grid-column:1/-1}
+.sv-chart-wrap{height:110px;position:relative}
+.sv-inputs-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:6px}
+.sv-month-field{display:flex;flex-direction:column;gap:2px}
+.sv-month-field label{font-size:9px;color:var(--text-muted);text-align:center;font-weight:500}
+.sv-month-field input{height:28px;padding:0 4px;border:.5px solid var(--border-strong);border-radius:5px;background:var(--surface-muted);color:var(--text-primary);font-size:11px;width:100%;text-align:center;font-family:inherit}
+.sv-month-field input:focus{outline:none;border-color:var(--accent)}
+
 /* ── MARKT-SEGMENTIERUNG ── */
 .mseg-section{padding:0 1.25rem .875rem}
 .mseg-card{background:var(--surface);border:.5px solid var(--border);border-radius:10px;padding:.875rem 1.125rem}
@@ -273,6 +284,7 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
   .prod-img-filled{display:block!important}
   .prod-img-clear{display:none!important}
   @page{margin:1.5cm}
+  .sv-inputs-wrap,.sv-inputs-grid,span.slabel:has(+#sv_inputs_grid){display:none!important}
   .sup-input:not(.url-input){border:none;background:transparent;padding:0}
   .url-input{display:none!important}
   .sup-link-display{display:inline!important}
@@ -372,6 +384,29 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
   <!-- LEFT: inputs -->
   <div class="panel-left">
 
+    <!-- Marktdaten & Suchvolumen -->
+    <div class="sv-section">
+      <span class="slabel" style="margin-top:0">Marktdaten</span>
+      <div class="sv-top-grid">
+        <div class="field field-full">
+          <label>Haupt-Suchbegriff</label>
+          <input type="text" id="sv_keyword" placeholder="z.B. Milbensauger">
+        </div>
+        <div class="field">
+          <label>Gesamtumsatz/Monat (€)</label>
+          <input type="number" id="sv_total_rev" min="0" step="100" placeholder="0">
+          <span class="hint">Marktgröße geschätzt</span>
+        </div>
+        <div class="field">
+          <label>Ø Umsatz pro Verkäufer/Monat (€)</label>
+          <input type="number" id="sv_avg_rev" min="0" step="10" placeholder="0">
+          <span class="hint">Durchschnitt Top-Seller</span>
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">Suchvolumen-Verlauf (Saisonalität)</div>
+      <div class="sv-chart-wrap"><canvas id="svChart"></canvas></div>
+    </div>
+
     <span class="slabel" style="margin-top:0">Produktdaten</span>
     <div class="grid2">
       <div class="field"><label>EK netto (€)</label><input type="number" id="ek" min="0" step="0.01" placeholder="0,00"><span class="hint">Lieferantenpreis ohne MwSt.</span></div>
@@ -445,6 +480,11 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
       <input type="number" id="target_margin" value="15" min="0" max="100" step="0.1">
     </div>
     <p style="font-size:10px;color:var(--text-muted);margin-top:10px;line-height:1.5">¹ Amazon erstattet Provision + MwSt bei Retouren. Kosten = PPC-Aufwand + FBA-Rücksendegebühr (ca. = FBA-Gebühr).</p>
+
+    <!-- Suchvolumen Monatseingaben (kein PDF-Export) -->
+    <div class="sep sv-inputs-wrap"></div>
+    <span class="slabel">Suchvolumen / Monat <span style="color:var(--text-muted);font-weight:400;text-transform:none;font-size:9px;letter-spacing:0">(für Saisonalitäts-Chart)</span></span>
+    <div class="sv-inputs-grid" id="sv_inputs_grid"></div>
 
   </div>
 
@@ -721,6 +761,62 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
 </div><!-- /tab-szenarien -->
 
 <script>
+/* ─────────── SUCHVOLUMEN CHART ─────────── */
+const SV_MONTHS = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+let svChart = null;
+
+(function buildSVInputs() {
+  const grid = document.getElementById('sv_inputs_grid');
+  SV_MONTHS.forEach((m, i) => {
+    const d = document.createElement('div');
+    d.className = 'sv-month-field';
+    d.innerHTML = '<label>' + m + '</label><input type="number" id="sv_' + i + '" min="0" step="100" placeholder="0" oninput="updateSVChart()">';
+    grid.appendChild(d);
+  });
+  initSVChart();
+})();
+
+function initSVChart() {
+  const ctx = document.getElementById('svChart').getContext('2d');
+  svChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: SV_MONTHS,
+      datasets: [{
+        label: 'Suchvolumen',
+        data: new Array(12).fill(0),
+        backgroundColor: 'rgba(24,95,165,0.18)',
+        borderColor: '#185FA5',
+        borderWidth: 1.5,
+        borderRadius: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.parsed.y.toLocaleString('de-DE') + ' Suchen'
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: gridColor() }, ticks: { color: textMuted(), font: { size: 9 } } },
+        y: { grid: { color: gridColor() }, ticks: { color: textMuted(), font: { size: 9 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v } }
+      }
+    }
+  });
+}
+
+function updateSVChart() {
+  if (!svChart) return;
+  const vals = SV_MONTHS.map((_, i) => parseFloat(document.getElementById('sv_' + i)?.value) || 0);
+  svChart.data.datasets[0].data = vals;
+  svChart.update();
+}
+
 /* ─────────── MARKT-SEGMENTIERUNG ─────────── */
 (function buildSegments() {
   const defaults = [
