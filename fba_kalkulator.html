@@ -307,16 +307,30 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
   header .tabs,.h-product-wrap .placeholder-label,.export-btn,.badge{display:none}
   .tab-panel{display:block!important}
   #tab-szenarien{display:none!important}
-  .layout{grid-template-columns:1fr;display:block}
-  .panel-left{display:none}
-  .panel-right{padding:0}
   body{background:white;color:black}
+  @page{margin:1.2cm}
+
+  /* Beide Panels nebeneinander */
+  .layout{display:grid!important;grid-template-columns:1fr 1.5fr;gap:0}
+  .panel-left{display:block!important;border-right:.5px solid #ddd;padding-right:1rem;font-size:12px}
+  .panel-right{padding:0 0 0 1rem}
+
+  /* Inputs im linken Panel als Textwerte darstellen */
+  .panel-left input[type=text],
+  .panel-left input[type=number],
+  .panel-left input[type=url]{border:none;background:transparent;padding:0 2px;font-weight:600;color:#111;width:100%}
+  .panel-left textarea{border:none;background:transparent;padding:0;resize:none;color:#111}
+  .panel-left input[type=range]{display:none!important}
+
+  /* Interaktive Elemente ausblenden */
+  .panel-left button,.storage-toggle-btn,.prod-img-clear{display:none!important}
+  .collapsible{display:block!important;max-height:none!important}
+  .sv-inputs-wrap,.sv-inputs-grid,span.slabel:has(+#sv_inputs_grid){display:none!important}
+
+  /* Rechtes Panel */
   .ampel-card,.chart-card,.breakdown,.monthly-block,.notes-section,.prod-img-card{break-inside:avoid}
   .prod-img-empty{display:none!important}
   .prod-img-filled{display:block!important}
-  .prod-img-clear{display:none!important}
-  @page{margin:1.5cm}
-  .sv-inputs-wrap,.sv-inputs-grid,span.slabel:has(+#sv_inputs_grid){display:none!important}
   .sup-input:not(.url-input){border:none;background:transparent;padding:0}
   .url-input{display:none!important}
   .sup-link-display{display:inline!important}
