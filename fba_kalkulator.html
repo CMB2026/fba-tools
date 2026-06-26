@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBA Margenkalkulator — MiteGuard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#f5f4f0;--surface:#fff;--surface-muted:#f0efe9;
+  --border:rgba(11,11,11,.10);--border-strong:rgba(11,11,11,.18);
+  --text-primary:#0b0b0b;--text-secondary:#52514e;--text-muted:#898781;
+  --accent:#185FA5;--accent-bg:#e6f1fb;--accent-border:#85b7eb;
+  --success:#0F6E56;--warning:#BA7517;--danger:#A32D2D;--radius:8px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a18;--surface:#242422;--surface-muted:#2c2c2a;
+  --border:rgba(255,255,255,.10);--border-strong:rgba(255,255,255,.18);
+  --text-primary:#f0efe9;--text-secondary:#b4b2a9;--text-muted:#898781;
+  --accent:#378add;--accent-bg:#0c447c22;--accent-border:#185fa5;
+  --success:#1D9E75;--warning:#EF9F27;--danger:#E24B4A;
+}}
+
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh}
+
+/* ── HEADER ── */
+header{background:var(--surface);border-bottom:.5px solid var(--border);padding:0 1.5rem;display:flex;align-items:stretch;gap:0;position:sticky;top:0;z-index:10;height:52px}
+.h-brand{display:flex;align-items:center;gap:8px;margin-right:16px;white-space:nowrap}
+.h-brand .brand{font-size:11px;font-weight:500;color:var(--text-muted);letter-spacing:.07em;text-transform:uppercase}
+.h-brand .sep-dot{color:var(--border-strong)}
+.h-brand .title{font-size:14px;font-weight:500}
+
+.h-product-wrap{flex:1;display:flex;align-items:center;padding:0 12px;border-left:.5px solid var(--border);border-right:.5px solid var(--border);min-width:0}
+.h-product-input{width:100%;border:none;background:transparent;font-size:13px;color:var(--text-primary);font-family:inherit;outline:none;min-width:0}
+.h-product-input::placeholder{color:var(--text-muted)}
+
+.tabs{display:flex;align-items:stretch;gap:0}
+.tab-btn{display:flex;align-items:center;gap:6px;padding:0 14px;font-size:13px;font-weight:500;color:var(--text-muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-.5px;transition:color .15s,border-color .15s;white-space:nowrap;font-family:inherit}
+.tab-btn i{font-size:15px}
+.tab-btn:hover{color:var(--text-primary)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.h-right{display:flex;align-items:center;gap:8px;margin-left:12px}
+.export-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:6px;background:var(--surface-muted);border:.5px solid var(--border-strong);font-size:12px;font-weight:500;color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:background .15s}
+.export-btn:hover{background:var(--border)}
+.export-btn i{font-size:14px}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--accent-bg);color:var(--accent);border:.5px solid var(--accent-border);font-weight:500;white-space:nowrap}
+
+/* ── TAB PANELS ── */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ════════════════════════════
+   TAB 1 — KALKULATOR
+════════════════════════════ */
+.layout{display:grid;grid-template-columns:370px 1fr;min-height:calc(100vh - 52px)}
+.panel-left{background:var(--surface);border-right:.5px solid var(--border);padding:1.25rem;overflow-y:auto}
+.panel-right{padding:1.25rem;overflow-y:auto}
+
+.slabel{font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin:1.1rem 0 7px;display:block}
+.slabel:first-child{margin-top:0}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:12px;color:var(--text-secondary)}
+.field input,.field select{height:34px;padding:0 9px;border:.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-muted);color:var(--text-primary);font-size:13px;width:100%;font-family:inherit}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.field .hint{font-size:10px;color:var(--text-muted)}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;cursor:pointer;user-select:none}
+.toggle-row span{font-size:13px;color:var(--text-secondary)}
+.toggle{width:34px;height:19px;background:var(--border-strong);border-radius:10px;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';width:15px;height:15px;background:white;border-radius:50%;position:absolute;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(15px)}
+.collapsible{overflow:hidden;max-height:0;transition:max-height .25s ease}
+.collapsible.open{max-height:300px}
+.sep{height:.5px;background:var(--border);margin:1.1rem 0}
+
+/* Right panel — results */
+.ampel-card{border-radius:10px;border:.5px solid var(--border);padding:1rem 1.25rem;margin-bottom:.875rem;display:flex;align-items:flex-start;gap:12px;background:var(--surface)}
+.dot{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.ampel-text h3{font-size:14px;font-weight:500;margin:0 0 3px}
+.ampel-text p{font-size:12px;color:var(--text-secondary);margin:0;line-height:1.5}
+
+.ek-suggest{background:var(--accent-bg);border:.5px solid var(--accent-border);border-radius:var(--radius);padding:.65rem .9rem;font-size:12px;color:var(--accent);margin-bottom:.875rem;display:none;line-height:1.5}
+.ek-suggest strong{font-weight:500}
+
+.result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:.875rem}
+.metric{background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);padding:.65rem .875rem;display:flex;flex-direction:column;gap:2px}
+.metric .mlabel{font-size:10px;color:var(--text-muted)}
+.metric .mval{font-size:17px;font-weight:500}
+.metric .msub{font-size:10px;color:var(--text-muted)}
+
+/* Chart area */
+.chart-card{background:var(--surface);border-radius:10px;border:.5px solid var(--border);padding:1rem 1.25rem;margin-bottom:.875rem}
+.chart-card-title{font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:12px}
+.chart-donut-wrap{position:relative;height:200px;display:flex;align-items:center;justify-content:center}
+.chart-donut-center{position:absolute;text-align:center;pointer-events:none}
+.chart-donut-center .cdc-val{font-size:22px;font-weight:600}
+.chart-donut-center .cdc-label{font-size:10px;color:var(--text-muted)}
+
+.monthly-block{background:var(--surface);border-radius:10px;border:.5px solid var(--border);padding:.875rem 1.125rem;margin-bottom:.875rem}
+.monthly-block .mb-title{font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:9px}
+.monthly-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.monthly-item .mi-label{font-size:10px;color:var(--text-muted)}
+.monthly-item .mi-val{font-size:15px;font-weight:500}
+
+.breakdown{background:var(--surface);border-radius:10px;border:.5px solid var(--border);padding:.875rem 1.125rem}
+.brow{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:.5px solid var(--border)}
+.brow:last-child{border-bottom:none}
+.brow .blabel{color:var(--text-secondary)}
+.brow .bval{font-weight:500}
+.brow.neg .bval{color:var(--danger)}
+.brow.total{padding-top:9px;margin-top:2px}
+.brow.total .blabel{font-weight:500;color:var(--text-primary);font-size:13px}
+.brow.total .bval{font-size:15px}
+
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:12px;color:var(--text-muted);font-size:14px;text-align:center}
+.placeholder i{font-size:36px;opacity:.3}
+
+/* ════════════════════════════
+   TAB 2 — SZENARIEN
+════════════════════════════ */
+.sz-wrap{padding:1.25rem;min-height:calc(100vh - 52px)}
+
+.sz-base{background:var(--surface);border:.5px solid var(--border);border-radius:10px;padding:.875rem 1.125rem;margin-bottom:1rem}
+.sz-base-title{font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px}
+.sz-base-row{display:flex;flex-wrap:wrap;gap:8px}
+.sz-base-row .field{min-width:110px;flex:1}
+
+.sz-params{background:var(--surface-muted);border:.5px solid var(--border);border-radius:8px;padding:.65rem 1rem;margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.sz-params .field{min-width:90px;flex:1}
+
+/* 3-column VK grid */
+.vk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem}
+
+.vk-card{background:var(--surface);border:.5px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s}
+.vk-card.winner{border-color:var(--success);box-shadow:0 0 0 2px color-mix(in srgb,var(--success) 12%,transparent)}
+.vk-card.loser{opacity:.72}
+
+.vk-head{padding:.75rem 1rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:8px}
+.vk-num{width:24px;height:24px;border-radius:50%;background:var(--surface-muted);border:.5px solid var(--border-strong);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-secondary)}
+.vk-name{flex:1;border:none;background:transparent;font-size:13px;font-weight:500;color:var(--text-primary);font-family:inherit;outline:none;min-width:0}
+.vk-name::placeholder{color:var(--text-muted);font-weight:400}
+.winner-badge{display:none;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--success);background:color-mix(in srgb,var(--success) 12%,transparent);border-radius:20px;padding:2px 7px}
+.vk-card.winner .winner-badge{display:flex}
+
+.vk-body{padding:.875rem 1rem;flex:1;display:flex;flex-direction:column;gap:9px}
+.vk-price-field{display:flex;flex-direction:column;gap:3px}
+.vk-price-field label{font-size:11px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.vk-price-input{height:44px;padding:0 12px;border:.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-muted);color:var(--text-primary);font-size:20px;font-weight:600;width:100%;font-family:inherit}
+.vk-price-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+
+.vk-results{background:var(--surface-muted);border-radius:7px;padding:.7rem .875rem}
+.vk-results-ph{font-size:12px;color:var(--text-muted);text-align:center;padding:.5rem 0}
+.vk-r-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.vk-m .vml{font-size:10px;color:var(--text-muted)}
+.vk-m .vmv{font-size:16px;font-weight:600}
+.vk-ampel-row{display:flex;align-items:center;gap:7px;padding-top:7px;border-top:.5px solid var(--border)}
+.vk-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.vk-ampel-txt{font-size:11px;color:var(--text-secondary);line-height:1.4}
+
+/* Scenario charts */
+.sz-charts{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.sz-chart-card{background:var(--surface);border:.5px solid var(--border);border-radius:10px;padding:.875rem 1.125rem}
+.sz-chart-card h4{font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px}
+.sz-chart-wrap{height:160px;position:relative}
+
+/* Comparison table */
+.cmp-card{background:var(--surface);border:.5px solid var(--border);border-radius:10px;overflow:hidden}
+.cmp-card-head{padding:.65rem 1.125rem;border-bottom:.5px solid var(--border);background:var(--surface-muted)}
+.cmp-card-head p{font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase}
+.cmp-table{width:100%;border-collapse:collapse}
+.cmp-table th{font-size:11px;font-weight:500;color:var(--text-muted);padding:.45rem 1.125rem;text-align:left;background:var(--surface-muted);border-bottom:.5px solid var(--border)}
+.cmp-table th:not(:first-child){text-align:right}
+.cmp-table td{font-size:12px;padding:.45rem 1.125rem;border-bottom:.5px solid var(--border);color:var(--text-secondary)}
+.cmp-table td:not(:first-child){text-align:right;font-weight:500;color:var(--text-primary)}
+.cmp-table tr:last-child td{border-bottom:none}
+.best-val{color:var(--success)!important}
+.worst-val{color:var(--danger)!important}
+.empty-c{color:var(--text-muted)!important;font-weight:400!important}
+.sz-empty{text-align:center;padding:1.5rem;font-size:12px;color:var(--text-muted)}
+
+/* ── PRINT / EXPORT ── */
+@media print{
+  header .tabs,.h-product-wrap .placeholder-label,.export-btn,.badge{display:none}
+  .tab-panel{display:block!important}
+  #tab-szenarien{display:none!important}
+  .layout{grid-template-columns:1fr;display:block}
+  .panel-left{display:none}
+  .panel-right{padding:0}
+  body{background:white;color:black}
+  .ampel-card,.chart-card,.breakdown,.monthly-block{break-inside:avoid}
+  @page{margin:1.5cm}
+}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .panel-left{border-right:none;border-bottom:.5px solid var(--border)}
+  .vk-grid{grid-template-columns:1fr}
+  .sz-charts{grid-template-columns:1fr}
+  .result-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header>
+  <div class="h-brand">
+    <span class="brand">MiteGuard</span>
+    <span class="sep-dot">·</span>
+    <span class="title">FBA Kalkulator</span>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('single',this)"><i class="ti ti-calculator"></i> Kalkulator</button>
+    <button class="tab-btn" onclick="switchTab('szenarien',this)"><i class="ti ti-columns-3"></i> VK-Szenarien</button>
+  </div>
+  <div class="h-product-wrap">
+    <i class="ti ti-tag" style="font-size:13px;color:var(--text-muted);margin-right:7px;flex-shrink:0"></i>
+    <input class="h-product-input" id="produktname" type="text" placeholder="Produktname eingeben…">
+  </div>
+  <div class="h-right">
+    <button class="export-btn" onclick="doExport()"><i class="ti ti-printer"></i> Export PDF</button>
+    <span class="badge">v1.4</span>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════
+     TAB 1 — KALKULATOR
+═══════════════════════════════════════ -->
+<div id="tab-single" class="tab-panel active">
+<div class="layout">
+
+  <!-- LEFT: inputs -->
+  <div class="panel-left">
+
+    <span class="slabel" style="margin-top:0">Produktdaten</span>
+    <div class="grid2">
+      <div class="field"><label>EK netto (€)</label><input type="number" id="ek" min="0" step="0.01" placeholder="0,00"><span class="hint">Lieferantenpreis ohne MwSt.</span></div>
+      <div class="field"><label>VK brutto (€)</label><input type="number" id="vk" min="0" step="0.01" placeholder="0,00"><span class="hint">Amazon-Preis inkl. MwSt.</span></div>
+    </div>
+
+    <span class="slabel">China-Versand &amp; Zoll</span>
+    <div class="grid2">
+      <div class="field"><label>Versand gesamt (€)</label><input type="number" id="shipping_total" min="0" step="0.01" placeholder="0,00"><span class="hint">Gesamtfracht für Sendung</span></div>
+      <div class="field"><label>Stückzahl Sendung</label><input type="number" id="qty" min="1" step="1" placeholder="500"><span class="hint">→ Versand/Stück berechnet</span></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Zoll % auf EK</label><input type="number" id="customs_pct" min="0" max="100" step="0.1" placeholder="0"><span class="hint">z.B. 3,7 für 3,7 %</span></div>
+      <div class="field"><label>Zoll Festbetrag/Stück (€)</label><input type="number" id="customs_fixed" min="0" step="0.01" placeholder="0,00"></div>
+    </div>
+
+    <span class="slabel">FBA-Versandklasse</span>
+    <div class="field" style="margin-bottom:8px">
+      <select id="fba_class">
+        <option value="1.94">Klein &amp; Leicht ≤33×23×2,5cm, ≤400g → 1,94 €</option>
+        <option value="2.70" selected>Klein Standard ≤33×23×5cm, ≤1kg → 2,70 €</option>
+        <option value="3.45">Groß Standard S ≤33×23×14cm, ≤1kg → 3,45 €</option>
+        <option value="3.88">Groß Standard M ≤33×23×14cm, ≤3kg → 3,88 €</option>
+        <option value="5.09">Groß Standard L ≤45×34×26cm, ≤12kg → 5,09 €</option>
+        <option value="6.50">Groß Standard XL ≤56×46×46cm, ≤20kg → 6,50 €</option>
+        <option value="custom">Manuell eingeben</option>
+      </select>
+    </div>
+    <div class="field" id="fba_manual_wrap" style="display:none;margin-bottom:8px">
+      <label>FBA-Gebühr manuell (€/Stück)</label>
+      <input type="number" id="fba_manual" min="0" step="0.01" placeholder="0,00">
+    </div>
+
+    <span class="slabel">Hochrechnung</span>
+    <div class="field" style="margin-bottom:8px">
+      <label>Geschätzte Verkäufe / Monat</label>
+      <input type="number" id="sales_month" min="1" step="1" placeholder="z.B. 50">
+    </div>
+
+    <span class="slabel">Lagerkosten (optional)</span>
+    <div class="toggle-row" id="storage_toggle">
+      <span>Lagerkosten einrechnen</span>
+      <div class="toggle" id="storage_toggle_btn"></div>
+    </div>
+    <div class="collapsible" id="storage_section">
+      <div class="grid2" style="margin-top:7px">
+        <div class="field"><label>Lagerkosten/Monat gesamt (€)</label><input type="number" id="storage_monthly" min="0" step="0.01" placeholder="0,00"></div>
+        <div class="field"><label>Ø Lagerbestand (Stück)</label><input type="number" id="storage_units" min="1" step="1" placeholder="100"></div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+    <span class="slabel">Parameter</span>
+    <div class="grid2">
+      <div class="field"><label>Amazon-Provision %</label><input type="number" id="prov_pct" value="15" min="0" max="100" step="0.1"></div>
+      <div class="field"><label>PPC-Kosten %</label><input type="number" id="ppc_pct" value="10" min="0" max="100" step="0.1"></div>
+      <div class="field"><label>MwSt. %</label><input type="number" id="mwst_pct" value="19" min="0" max="100" step="0.1"></div>
+      <div class="field">
+        <label>Retourenquote %</label>
+        <input type="number" id="return_pct" value="8" min="0" max="100" step="0.1">
+        <span class="hint">Kosten: PPC + FBA-Rücksendegebühr ¹</span>
+      </div>
+    </div>
+    <div class="field" style="margin-top:8px">
+      <label>Unverkäufliche Retouren % <span style="color:var(--text-muted);font-weight:400">(beschädigt, kein Resell)</span></label>
+      <input type="number" id="return_unsellable_pct" value="0" min="0" max="100" step="1">
+      <span class="hint">% der Retouren, bei denen der EK verloren geht</span>
+    </div>
+    <div class="field" style="margin-top:8px">
+      <label>Zielmarge netto %</label>
+      <input type="number" id="target_margin" value="15" min="0" max="100" step="0.1">
+    </div>
+    <p style="font-size:10px;color:var(--text-muted);margin-top:10px;line-height:1.5">¹ Amazon erstattet Provision + MwSt bei Retouren. Kosten = PPC-Aufwand + FBA-Rücksendegebühr (ca. = FBA-Gebühr).</p>
+
+  </div>
+
+  <!-- RIGHT: results -->
+  <div class="panel-right">
+
+    <div id="placeholder" class="placeholder">
+      <i class="ti ti-calculator"></i>
+      <span>EK- und VK-Preis eingeben,<br>um die Kalkulation zu starten.</span>
+    </div>
+
+    <div id="results" style="display:none">
+
+      <div class="ampel-card">
+        <div class="dot" id="ampel_dot"></div>
+        <div class="ampel-text">
+          <h3 id="ampel_title"></h3>
+          <p id="ampel_msg"></p>
+        </div>
+      </div>
+
+      <div class="ek-suggest" id="ek_suggest"></div>
+
+      <div class="result-grid">
+        <div class="metric"><span class="mlabel">VK netto</span><span class="mval" id="r_vk_net"></span></div>
+        <div class="metric"><span class="mlabel">Kosten/Stück</span><span class="mval" id="r_total_cost"></span></div>
+        <div class="metric"><span class="mlabel">Gewinn/Stück</span><span class="mval" id="r_net_profit"></span></div>
+        <div class="metric"><span class="mlabel">Nettomarge</span><span class="mval" id="r_margin_pct"></span><span class="msub" id="r_margin_sub"></span></div>
+      </div>
+
+      <!-- Donut chart -->
+      <div class="chart-card">
+        <div class="chart-card-title">Kostenaufschlüsselung — Anteil am VK-Preis</div>
+        <div class="chart-donut-wrap">
+          <canvas id="donutChart" style="max-width:200px;max-height:200px"></canvas>
+          <div class="chart-donut-center">
+            <div class="cdc-val" id="donut_center_val"></div>
+            <div class="cdc-label">Nettomarge</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly projection -->
+      <div class="monthly-block" id="monthly_block" style="display:none">
+        <div class="mb-title">Hochrechnung / Monat</div>
+        <div class="monthly-grid">
+          <div class="monthly-item"><span class="mi-label">Verkäufe</span><span class="mi-val" id="m_sales"></span></div>
+          <div class="monthly-item"><span class="mi-label">Umsatz brutto</span><span class="mi-val" id="m_revenue"></span></div>
+          <div class="monthly-item"><span class="mi-label">Nettogewinn</span><span class="mi-val" id="m_profit"></span></div>
+        </div>
+      </div>
+
+      <!-- Breakdown -->
+      <div class="breakdown">
+        <p style="font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:7px">Aufschlüsselung pro Stück</p>
+        <div class="brow"><span class="blabel">VK brutto</span><span class="bval" id="b_vk_gross"></span></div>
+        <div class="brow neg"><span class="blabel">./. MwSt.</span><span class="bval" id="b_mwst"></span></div>
+        <div class="brow"><span class="blabel">= VK netto</span><span class="bval" id="b_vk_net"></span></div>
+        <div class="brow neg"><span class="blabel">./. Amazon-Provision</span><span class="bval" id="b_prov"></span></div>
+        <div class="brow neg"><span class="blabel">./. FBA-Versandgebühr</span><span class="bval" id="b_fba"></span></div>
+        <div class="brow neg"><span class="blabel">./. PPC-Kosten</span><span class="bval" id="b_ppc"></span></div>
+        <div class="brow neg"><span class="blabel">./. EK-Preis netto</span><span class="bval" id="b_ek"></span></div>
+        <div class="brow neg"><span class="blabel" id="b_shipping_label">./. Versand China/Stück</span><span class="bval" id="b_shipping"></span></div>
+        <div class="brow neg"><span class="blabel">./. Zollgebühren/Stück</span><span class="bval" id="b_customs"></span></div>
+        <div class="brow neg" id="b_returns_row"><span class="blabel" id="b_returns_label">./. Retourenkosten (PPC+FBA)</span><span class="bval" id="b_returns"></span></div>
+        <div class="brow neg" id="b_unsellable_row" style="display:none"><span class="blabel" id="b_unsellable_label">./. EK-Verlust unverkäufl. Retouren</span><span class="bval" id="b_unsellable"></span></div>
+        <div class="brow neg" id="b_storage_row" style="display:none"><span class="blabel">./. Lagerkosten/Stück</span><span class="bval" id="b_storage"></span></div>
+        <div class="brow total"><span class="blabel">= Nettogewinn/Stück</span><span class="bval" id="b_profit"></span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div><!-- /tab-single -->
+
+<!-- ═══════════════════════════════════════
+     TAB 2 — VK-SZENARIEN
+═══════════════════════════════════════ -->
+<div id="tab-szenarien" class="tab-panel">
+<div class="sz-wrap">
+
+  <!-- Shared base costs -->
+  <div class="sz-base">
+    <div class="sz-base-title">Produktbasis (gilt für alle Szenarien)</div>
+    <div class="sz-base-row">
+      <div class="field"><label>EK netto (€)</label><input type="number" id="s_ek" min="0" step="0.01" placeholder="0,00" oninput="calcAll()"></div>
+      <div class="field"><label>Versand gesamt (€)</label><input type="number" id="s_ship" min="0" step="0.01" placeholder="0,00" oninput="calcAll()"></div>
+      <div class="field"><label>Stückzahl Sendung</label><input type="number" id="s_qty" min="1" step="1" placeholder="500" oninput="calcAll()"></div>
+      <div class="field"><label>Zoll % auf EK</label><input type="number" id="s_cust" min="0" step="0.1" placeholder="0" oninput="calcAll()"></div>
+      <div class="field">
+        <label>FBA-Gebühr (€)</label>
+        <input type="number" id="s_fba" min="0" step="0.01" placeholder="2,70" oninput="calcAll()">
+      </div>
+      <div class="field"><label>Verkäufe/Monat</label><input type="number" id="s_sales" min="1" step="1" placeholder="50" oninput="calcAll()"></div>
+    </div>
+  </div>
+
+  <!-- Shared parameters -->
+  <div class="sz-params">
+    <div class="field"><label>Provision %</label><input type="number" id="s_prov" value="15" min="0" max="100" step="0.1" oninput="calcAll()"></div>
+    <div class="field"><label>PPC %</label><input type="number" id="s_ppc" value="10" min="0" max="100" step="0.1" oninput="calcAll()"></div>
+    <div class="field"><label>MwSt. %</label><input type="number" id="s_mwst" value="19" min="0" max="100" step="0.1" oninput="calcAll()"></div>
+    <div class="field"><label>Retourenquote %</label><input type="number" id="s_ret" value="8" min="0" max="100" step="0.1" oninput="calcAll()"></div>
+    <div class="field"><label>Unverkäufl. Ret. %</label><input type="number" id="s_uns" value="0" min="0" max="100" step="1" oninput="calcAll()"></div>
+    <div class="field"><label>Zielmarge %</label><input type="number" id="s_target" value="15" min="0" max="100" step="0.1" oninput="calcAll()"></div>
+  </div>
+
+  <!-- 3 VK-Preis cards -->
+  <div class="vk-grid">
+
+    <div class="vk-card" id="vk_card_0">
+      <div class="vk-head">
+        <div class="vk-num">1</div>
+        <input class="vk-name" id="vk_name_0" type="text" placeholder="Szenario 1" oninput="calcAll()">
+        <div class="winner-badge"><i class="ti ti-crown" style="font-size:10px"></i> Bestes</div>
+      </div>
+      <div class="vk-body">
+        <div class="vk-price-field">
+          <label>VK-Preis brutto (€)</label>
+          <input class="vk-price-input" type="number" id="vk_0" min="0" step="0.01" placeholder="0,00" oninput="calcAll()">
+        </div>
+        <div class="vk-results" id="vkr_0"><div class="vk-results-ph">VK-Preis eingeben…</div></div>
+      </div>
+    </div>
+
+    <div class="vk-card" id="vk_card_1">
+      <div class="vk-head">
+        <div class="vk-num">2</div>
+        <input class="vk-name" id="vk_name_1" type="text" placeholder="Szenario 2" oninput="calcAll()">
+        <div class="winner-badge"><i class="ti ti-crown" style="font-size:10px"></i> Bestes</div>
+      </div>
+      <div class="vk-body">
+        <div class="vk-price-field">
+          <label>VK-Preis brutto (€)</label>
+          <input class="vk-price-input" type="number" id="vk_1" min="0" step="0.01" placeholder="0,00" oninput="calcAll()">
+        </div>
+        <div class="vk-results" id="vkr_1"><div class="vk-results-ph">VK-Preis eingeben…</div></div>
+      </div>
+    </div>
+
+    <div class="vk-card" id="vk_card_2">
+      <div class="vk-head">
+        <div class="vk-num">3</div>
+        <input class="vk-name" id="vk_name_2" type="text" placeholder="Szenario 3" oninput="calcAll()">
+        <div class="winner-badge"><i class="ti ti-crown" style="font-size:10px"></i> Bestes</div>
+      </div>
+      <div class="vk-body">
+        <div class="vk-price-field">
+          <label>VK-Preis brutto (€)</label>
+          <input class="vk-price-input" type="number" id="vk_2" min="0" step="0.01" placeholder="0,00" oninput="calcAll()">
+        </div>
+        <div class="vk-results" id="vkr_2"><div class="vk-results-ph">VK-Preis eingeben…</div></div>
+      </div>
+    </div>
+
+  </div><!-- /vk-grid -->
+
+  <!-- Charts -->
+  <div class="sz-charts">
+    <div class="sz-chart-card">
+      <h4>Nettomarge im Vergleich</h4>
+      <div class="sz-chart-wrap"><canvas id="szMarginChart"></canvas></div>
+    </div>
+    <div class="sz-chart-card">
+      <h4>Gewinn pro Stück im Vergleich</h4>
+      <div class="sz-chart-wrap"><canvas id="szProfitChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Comparison table -->
+  <div class="cmp-card">
+    <div class="cmp-card-head"><p>Detailvergleich</p></div>
+    <div id="cmp_body"><div class="sz-empty">Mindestens einen VK-Preis und EK eingeben.</div></div>
+  </div>
+
+</div>
+</div><!-- /tab-szenarien -->
+
+<script>
+/* ─────────── HELPERS ─────────── */
+const $  = id => document.getElementById(id);
+const fmt  = v => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2) + ' €';
+const fmtP = v => v.toFixed(1) + ' %';
+function gv(id, fb) { const v = parseFloat($(id)?.value); return isNaN(v) ? (fb ?? 0) : v; }
+
+function getVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+const dark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
+const textMuted = () => dark() ? '#898781' : '#898781';
+const gridColor = () => dark() ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+
+/* ─────────── TABS ─────────── */
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  $('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ─────────── EXPORT ─────────── */
+function doExport() { window.print(); }
+
+/* ─────────── CORE FORMULA ─────────── */
+/*
+ * RETOURENKOSTEN (korrigierte Formel):
+ * Amazon erstattet bei Retoure: Provision + MwSt (beide reversieren buchhalterisch)
+ * Verbleibende Kosten pro Stück verkauft:
+ *   - PPC-Aufwand für die retournierte Bestellung (kein Refund)
+ *   - FBA-Rücksendegebühr ≈ FBA-Versandgebühr (nicht erstattet)
+ *   - Optional: EK-Verlust bei unverkäuflichen Retouren
+ */
+function computeMargin({ek, vk, shippingPerUnit, customsPct, customsFixed,
+    fbaFee, provPct, ppcPct, mwstPct, returnPct, unsellablePct, storageCost}) {
+
+  const mwst   = vk * (mwstPct / (1 + mwstPct));
+  const vkNet  = vk - mwst;
+  const prov   = vk * provPct;            // Provision (erstattet bei Retoure, aber hier als Kosten des Normalverkaufs)
+  const ppc    = vk * ppcPct;             // PPC bezogen auf VK brutto
+  const customsPerUnit = ek * customsPct + customsFixed;
+
+  // ✅ Korrigiert: Provision + MwSt werden bei Retouren erstattet → nicht in returnCost
+  // returnCost = Anteil aller Verkäufe der als Retourenkosten anfällt:
+  const returnCost = returnPct * (vk * ppcPct + fbaFee);
+  // Unverkäufliche Retouren: zusätzlicher EK-Verlust
+  const unsellableCost = returnPct * (unsellablePct / 100) * ek;
+
+  const totalCosts = ek + shippingPerUnit + customsPerUnit + prov + fbaFee + ppc + mwst
+                   + returnCost + unsellableCost + storageCost;
+  const netProfit  = vk - totalCosts;
+  const marginPct  = vkNet > 0 ? (netProfit / vkNet) * 100 : 0;
+
+  return { mwst, vkNet, prov, ppc, customsPerUnit, returnCost, unsellableCost,
+           totalCosts, netProfit, marginPct };
+}
+
+/* ─────────── CHART INSTANCES ─────────── */
+let donutChart = null;
+let szMarginChart = null;
+let szProfitChart = null;
+
+const COST_COLORS = ['#185FA5','#5e9b00','#52514e','#BA7517','#898781','#EF9F27','#A32D2D','#c084fc','#1D9E75'];
+
+function initDonut() {
+  const ctx = $('donutChart').getContext('2d');
+  donutChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['EK','Versand+Zoll','Provision','FBA','PPC','MwSt','Retourenkosten','Lager','Nettogewinn'],
+      datasets: [{ data: [], backgroundColor: COST_COLORS, borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true, cutout: '68%',
+      plugins: {
+        legend: { position: 'right', labels: { font: { size: 11 }, color: textMuted(), padding: 10, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.parsed.toFixed(2) + ' €' } }
+      }
+    }
+  });
+}
+
+function updateDonut(vals) {
+  if (!donutChart) initDonut();
+  donutChart.data.datasets[0].data = vals;
+  donutChart.options.plugins.legend.labels.color = textMuted();
+  donutChart.update();
+}
+
+function initSzCharts() {
+  const mctx = $('szMarginChart').getContext('2d');
+  szMarginChart = new Chart(mctx, {
+    type: 'bar',
+    data: { labels: ['S1','S2','S3'], datasets: [{ data: [null,null,null], backgroundColor: ['#898781','#898781','#898781'], borderRadius: 5, borderSkipped: false }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y.toFixed(1) + ' %' } } },
+      scales: {
+        x: { grid: { color: gridColor() }, ticks: { color: textMuted(), font: { size: 11 } } },
+        y: { grid: { color: gridColor() }, ticks: { color: textMuted(), font: { size: 11 }, callback: v => v + ' %' } }
+      }
+    }
+  });
+  const pctx = $('szProfitChart').getContext('2d');
+  szProfitChart = new Chart(pctx, {
+    type: 'bar',
+    data: { labels: ['S1','S2','S3'], datasets: [{ data: [null,null,null], backgroundColor: ['#898781','#898781','#898781'], borderRadius: 5, borderSkipped: false }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y.toFixed(2) + ' €' } } },
+      scales: {
+        x: { grid: { color: gridColor() }, ticks: { color: textMuted(), font: { size: 11 } } },
+        y: { grid: { color: gridColor() }, ticks: { color: textMuted(), font: { size: 11 }, callback: v => v.toFixed(2) + ' €' } }
+      }
+    }
+  });
+}
+
+function ampelColor(m, t) {
+  return m >= t ? '#1D9E75' : m >= 0 ? '#EF9F27' : '#E24B4A';
+}
+
+/* ─────────── TAB 1: SINGLE CALC ─────────── */
+let storageOn = false;
+
+$('storage_toggle').addEventListener('click', () => {
+  storageOn = !storageOn;
+  $('storage_toggle_btn').classList.toggle('on', storageOn);
+  $('storage_section').classList.toggle('open', storageOn);
+  calc();
+});
+$('fba_class').addEventListener('change', function() {
+  $('fba_manual_wrap').style.display = this.value === 'custom' ? 'block' : 'none';
+  calc();
+});
+['ek','vk','shipping_total','qty','customs_pct','customs_fixed','fba_manual',
+ 'prov_pct','ppc_pct','mwst_pct','target_margin','return_pct','return_unsellable_pct',
+ 'storage_monthly','storage_units','sales_month'].forEach(id => {
+  const el = $(id);
+  if (el) { el.addEventListener('input', calc); el.addEventListener('change', calc); }
+});
+
+function calc() {
+  const vk  = gv('vk');
+  const ek  = gv('ek');
+  if (vk <= 0 && ek <= 0) {
+    $('placeholder').style.display = 'flex';
+    $('results').style.display = 'none';
+    return;
+  }
+
+  const shippingTotal   = gv('shipping_total');
+  const qty             = Math.max(gv('qty', 1), 1);
+  const customsPct      = gv('customs_pct') / 100;
+  const customsFixed    = gv('customs_fixed');
+  const fbaClass        = $('fba_class').value;
+  const fbaFee          = fbaClass === 'custom' ? gv('fba_manual') : parseFloat(fbaClass);
+  const provPct         = gv('prov_pct', 15) / 100;
+  const ppcPct          = gv('ppc_pct', 10) / 100;
+  const mwstPct         = gv('mwst_pct', 19) / 100;
+  const returnPct       = gv('return_pct', 8) / 100;
+  const unsellablePct   = gv('return_unsellable_pct', 0);
+  const targetMarginPct = gv('target_margin', 15) / 100;
+  const salesMonth      = gv('sales_month', 0);
+  const shippingPerUnit = shippingTotal / qty;
+
+  let storageCost = 0;
+  if (storageOn) {
+    storageCost = gv('storage_monthly') / Math.max(gv('storage_units', 1), 1);
+  }
+
+  const r = computeMargin({ ek, vk, shippingPerUnit, customsPct, customsFixed,
+    fbaFee, provPct, ppcPct, mwstPct, returnPct, unsellablePct, storageCost });
+  const { mwst, vkNet, prov, ppc, customsPerUnit, returnCost, unsellableCost,
+          totalCosts, netProfit, marginPct } = r;
+  const targetPct = targetMarginPct * 100;
+
+  $('placeholder').style.display = 'none';
+  $('results').style.display = 'block';
+
+  $('r_vk_net').textContent     = fmt(vkNet);
+  $('r_total_cost').textContent = fmt(totalCosts);
+
+  const pEl = $('r_net_profit');
+  pEl.textContent = fmt(netProfit);
+  pEl.style.color = netProfit < 0 ? 'var(--danger)' : 'var(--success)';
+
+  const mEl = $('r_margin_pct');
+  mEl.textContent = fmtP(marginPct);
+  mEl.style.color = ampelColor(marginPct, targetPct);
+  $('r_margin_sub').textContent = 'Ziel: ' + fmtP(targetPct);
+
+  // Donut
+  const profitSegment = Math.max(netProfit, 0);
+  const donutVals = [ek, shippingPerUnit + customsPerUnit, prov, fbaFee, ppc, mwst,
+                     returnCost + unsellableCost, storageCost, profitSegment]
+    .map(v => Math.max(v, 0));
+  updateDonut(donutVals);
+  $('donut_center_val').textContent = fmtP(marginPct);
+  $('donut_center_val').style.color = ampelColor(marginPct, targetPct);
+
+  // Monthly
+  if (salesMonth > 0) {
+    $('monthly_block').style.display = 'block';
+    $('m_sales').textContent = salesMonth + ' Stk.';
+    $('m_revenue').textContent = fmt(vk * salesMonth);
+    const mProfEl = $('m_profit');
+    const mp = netProfit * salesMonth;
+    mProfEl.textContent = fmt(mp);
+    mProfEl.style.color = mp < 0 ? 'var(--danger)' : 'var(--success)';
+  } else {
+    $('monthly_block').style.display = 'none';
+  }
+
+  // Breakdown
+  $('b_vk_gross').textContent = fmt(vk);
+  $('b_mwst').textContent     = '−' + fmt(mwst);
+  $('b_vk_net').textContent   = fmt(vkNet);
+  $('b_prov').textContent     = '−' + fmt(prov);
+  $('b_fba').textContent      = '−' + fmt(fbaFee);
+  $('b_ppc').textContent      = '−' + fmt(ppc);
+  $('b_ek').textContent       = '−' + fmt(ek);
+  $('b_shipping').textContent = '−' + fmt(shippingPerUnit);
+  $('b_shipping_label').textContent = './. Versand China/Stück (' + qty + ' Stk.)';
+  $('b_customs').textContent  = '−' + fmt(customsPerUnit);
+  $('b_returns').textContent  = '−' + fmt(returnCost);
+  $('b_returns_label').textContent = './. Retourenkosten PPC+FBA (' + fmtP(returnPct * 100) + ')';
+
+  if (unsellableCost > 0) {
+    $('b_unsellable_row').style.display = 'flex';
+    $('b_unsellable').textContent = '−' + fmt(unsellableCost);
+    $('b_unsellable_label').textContent = './. EK-Verlust unverkäufl. Ret. (' + fmtP(unsellablePct) + ' der Ret.)';
+  } else {
+    $('b_unsellable_row').style.display = 'none';
+  }
+
+  if (storageOn && storageCost > 0) {
+    $('b_storage_row').style.display = 'flex';
+    $('b_storage').textContent = '−' + fmt(storageCost);
+  } else {
+    $('b_storage_row').style.display = 'none';
+  }
+
+  const bpEl = $('b_profit');
+  bpEl.textContent = fmt(netProfit);
+  bpEl.style.color = netProfit < 0 ? 'var(--danger)' : 'var(--success)';
+
+  // Ampel
+  const dot = $('ampel_dot'), title = $('ampel_title'), msg = $('ampel_msg');
+  if (marginPct >= targetPct) {
+    dot.style.background = '#1D9E75';
+    dot.innerHTML = '<i class="ti ti-check" style="color:#fff;font-size:19px"></i>';
+    title.textContent = 'Profitabel — Ziel erreicht';
+    msg.textContent   = 'Nettomarge ' + fmtP(marginPct) + ' liegt ' + fmtP(marginPct - targetPct) + ' über dem Ziel.';
+    $('ek_suggest').style.display = 'none';
+  } else if (marginPct >= 0) {
+    dot.style.background = '#EF9F27';
+    dot.innerHTML = '<i class="ti ti-alert-triangle" style="color:#fff;font-size:19px"></i>';
+    title.textContent = 'Zu niedrige Marge — EK-Verhandlung empfohlen';
+    msg.textContent   = 'Nettomarge ' + fmtP(marginPct) + ' liegt ' + fmtP(targetPct - marginPct) + ' unter Ziel.';
+    showEkSuggest(vkNet, prov, fbaFee, ppc, shippingPerUnit, customsFixed, customsPct, returnCost, unsellableCost, storageCost, targetMarginPct);
+  } else {
+    dot.style.background = '#E24B4A';
+    dot.innerHTML = '<i class="ti ti-x" style="color:#fff;font-size:19px"></i>';
+    title.textContent = 'Verlustgeschäft — Produkt nicht viable';
+    msg.textContent   = 'Nettomarge ' + fmtP(marginPct) + '. VK erhöhen oder Kosten senken.';
+    showEkSuggest(vkNet, prov, fbaFee, ppc, shippingPerUnit, customsFixed, customsPct, returnCost, unsellableCost, storageCost, targetMarginPct);
+  }
+}
+
+function showEkSuggest(vkNet, prov, fbaFee, ppc, shippingPerUnit, customsFixed, customsPct, returnCost, unsellableCost, storageCost, targetMarginPct) {
+  const targetProfit = vkNet * targetMarginPct;
+  const ekMax = (targetProfit - prov - fbaFee - ppc - shippingPerUnit - customsFixed - returnCost - unsellableCost - storageCost) / (1 + customsPct);
+  const el = $('ek_suggest');
+  if (ekMax > 0) {
+    el.style.display = 'block';
+    el.innerHTML = '<i class="ti ti-bulb" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>'
+      + '<strong>Max. Ziel-EK für ' + fmtP(targetMarginPct * 100) + ' Nettomarge:</strong> ' + fmt(ekMax)
+      + ' — für Lieferantenverhandlung nutzen.';
+  } else {
+    el.style.display = 'block';
+    el.innerHTML = '<i class="ti ti-alert-circle" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>'
+      + '<strong>Kein profitabler EK erreichbar</strong> bei diesem VK. VK-Preis prüfen.';
+  }
+}
+
+/* ─────────── TAB 2: SZENARIEN ─────────── */
+function calcScenario(idx) {
+  const vk = gv('vk_' + idx);
+  const ek = gv('s_ek');
+  if (vk <= 0 || ek <= 0) return null;
+
+  const ship = gv('s_ship');
+  const qty  = Math.max(gv('s_qty', 1), 1);
+  const cust = gv('s_cust') / 100;
+  const fba  = gv('s_fba', 2.70);
+  const provPct   = gv('s_prov', 15) / 100;
+  const ppcPct    = gv('s_ppc', 10) / 100;
+  const mwstPct   = gv('s_mwst', 19) / 100;
+  const returnPct = gv('s_ret', 8) / 100;
+  const unsellPct = gv('s_uns', 0);
+  const shPerUnit = ship / qty;
+
+  return {
+    vk,
+    ...computeMargin({ ek, vk, shippingPerUnit: shPerUnit, customsPct: cust, customsFixed: 0,
+      fbaFee: fba, provPct, ppcPct, mwstPct, returnPct, unsellablePct: unsellPct, storageCost: 0 })
+  };
+}
+
+function renderVkResult(idx, r) {
+  const el = $('vkr_' + idx);
+  if (!r) { el.innerHTML = '<div class="vk-results-ph">VK-Preis + EK eingeben…</div>'; return; }
+  const target = gv('s_target', 15);
+  const col = ampelColor(r.marginPct, target);
+  const dotCol = ampelColor(r.marginPct, target);
+  const ampelTxt = r.marginPct >= target ? 'Ziel erreicht (+' + fmtP(r.marginPct - target) + ')'
+                 : r.marginPct >= 0      ? fmtP(target - r.marginPct) + ' unter Ziel'
+                 :                         'Verlustgeschäft';
+  const salesMonth = gv('s_sales', 0);
+  const monthlyProfit = salesMonth > 0 ? `<div class="vk-m"><div class="vml">Gewinn/Monat</div><div class="vmv" style="color:${r.netProfit<0?'var(--danger)':'var(--success)'}">${fmt(r.netProfit * salesMonth)}</div></div>` : '';
+  el.innerHTML = `
+    <div class="vk-r-grid">
+      <div class="vk-m"><div class="vml">Nettomarge</div><div class="vmv" style="color:${col}">${fmtP(r.marginPct)}</div></div>
+      <div class="vk-m"><div class="vml">Gewinn/Stück</div><div class="vmv" style="color:${r.netProfit<0?'var(--danger)':'var(--success)'}">${fmt(r.netProfit)}</div></div>
+      <div class="vk-m"><div class="vml">VK netto</div><div class="vmv">${fmt(r.vkNet)}</div></div>
+      <div class="vk-m"><div class="vml">Kosten/Stück</div><div class="vmv">${fmt(r.totalCosts)}</div></div>
+      ${monthlyProfit}
+    </div>
+    <div class="vk-ampel-row"><div class="vk-dot" style="background:${dotCol}"></div><span class="vk-ampel-txt">${ampelTxt}</span></div>`;
+}
+
+function calcAll() {
+  if (!szMarginChart) initSzCharts();
+
+  const results = [0, 1, 2].map(i => calcScenario(i));
+  const target = gv('s_target', 15);
+  results.forEach((r, i) => renderVkResult(i, r));
+
+  // Winner
+  const active = results.map((r, i) => r ? { m: r.marginPct, i } : null).filter(Boolean);
+  let winIdx = -1;
+  if (active.length > 1) winIdx = active.reduce((a, b) => b.m > a.m ? b : a).i;
+
+  [0,1,2].forEach(i => {
+    const c = $('vk_card_' + i);
+    c.classList.remove('winner','loser');
+    if (active.length > 1 && results[i]) {
+      c.classList.add(i === winIdx ? 'winner' : 'loser');
+    }
+  });
+
+  // Chart: Margin
+  const names = [0,1,2].map(i => {
+    const n = $('vk_name_' + i).value.trim();
+    const v = gv('vk_' + i);
+    return n || (v > 0 ? fmt(v) : 'S' + (i+1));
+  });
+  const margins = results.map(r => r ? parseFloat(r.marginPct.toFixed(1)) : null);
+  const profits = results.map(r => r ? parseFloat(r.netProfit.toFixed(2)) : null);
+  const mColors = results.map((r,i) => r ? ampelColor(r.marginPct, target) : '#898781');
+  const pColors = results.map((r,i) => r ? (r.netProfit >= 0 ? '#1D9E75' : '#E24B4A') : '#898781');
+
+  szMarginChart.data.labels = names;
+  szMarginChart.data.datasets[0].data = margins;
+  szMarginChart.data.datasets[0].backgroundColor = mColors;
+  szMarginChart.options.scales.x.ticks.color = textMuted();
+  szMarginChart.options.scales.y.ticks.color = textMuted();
+  szMarginChart.options.scales.x.grid.color = gridColor();
+  szMarginChart.options.scales.y.grid.color = gridColor();
+  szMarginChart.update();
+
+  szProfitChart.data.labels = names;
+  szProfitChart.data.datasets[0].data = profits;
+  szProfitChart.data.datasets[0].backgroundColor = pColors;
+  szProfitChart.options.scales.x.ticks.color = textMuted();
+  szProfitChart.options.scales.y.ticks.color = textMuted();
+  szProfitChart.options.scales.x.grid.color = gridColor();
+  szProfitChart.options.scales.y.grid.color = gridColor();
+  szProfitChart.update();
+
+  // Comparison table
+  if (active.length === 0) {
+    $('cmp_body').innerHTML = '<div class="sz-empty">Mindestens einen VK-Preis und EK eingeben.</div>';
+    return;
+  }
+  const allMargins = margins.filter(v => v !== null);
+  const bestM = Math.max(...allMargins), worstM = Math.min(...allMargins);
+  const allProfits = profits.filter(v => v !== null);
+  const bestP = Math.max(...allProfits), worstP = Math.min(...allProfits);
+
+  function tdm(v, best, worst, f) {
+    if (v === null) return '<td class="empty-c">—</td>';
+    const cls = allMargins.length > 1 ? (v === best ? 'best-val' : v === worst ? 'worst-val' : '') : '';
+    return `<td class="${cls}">${f(v)}</td>`;
+  }
+  function tdp(v, best, worst, f) {
+    if (v === null) return '<td class="empty-c">—</td>';
+    const cls = allProfits.length > 1 ? (v === best ? 'best-val' : v === worst ? 'worst-val' : '') : '';
+    return `<td class="${cls}">${f(v)}</td>`;
+  }
+  function tdn(v, f) { return v === null ? '<td class="empty-c">—</td>' : `<td>${f(v)}</td>`; }
+
+  const salesMonth = gv('s_sales', 0);
+  let rows = `
+    <tr><td>VK-Preis brutto</td>${results.map(r => tdn(r?r.vk:null, fmt)).join('')}</tr>
+    <tr><td>VK netto</td>${results.map(r => tdn(r?r.vkNet:null, fmt)).join('')}</tr>
+    <tr><td>Kosten/Stück</td>${results.map(r => tdn(r?r.totalCosts:null, fmt)).join('')}</tr>
+    <tr><td>Gewinn/Stück</td>${profits.map(v => tdp(v,bestP,worstP,fmt)).join('')}</tr>
+    <tr><td>Nettomarge</td>${margins.map(v => tdm(v,bestM,worstM,fmtP)).join('')}</tr>`;
+  if (salesMonth > 0) {
+    const mps = results.map(r => r ? parseFloat((r.netProfit * salesMonth).toFixed(2)) : null);
+    const bestMp = Math.max(...mps.filter(v=>v!==null)), worstMp = Math.min(...mps.filter(v=>v!==null));
+    rows += `<tr><td>Gewinn/Monat (${salesMonth} Stk.)</td>${mps.map(v=>tdp(v,bestMp,worstMp,fmt)).join('')}</tr>`;
+  }
+
+  $('cmp_body').innerHTML = `
+    <table class="cmp-table">
+      <thead><tr><th>Kennzahl</th><th>${names[0]}</th><th>${names[1]}</th><th>${names[2]}</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// Dark mode chart refresh on system change
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (donutChart) { donutChart.options.plugins.legend.labels.color = textMuted(); donutChart.update(); }
+});
+</script>
+</body>
+</html>
