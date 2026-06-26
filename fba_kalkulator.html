@@ -142,11 +142,12 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 .pf-sub{font-size:11px;color:var(--text-muted);margin-top:3px;line-height:1.4}
 .pf-sep{width:.5px;background:var(--border);min-height:48px;align-self:stretch}
 
-.monthly-block{background:var(--surface);border-radius:10px;border:.5px solid var(--border);padding:.875rem 1.125rem;margin-bottom:.875rem}
-.monthly-block .mb-title{font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:9px}
-.monthly-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.monthly-item .mi-label{font-size:10px;color:var(--text-muted)}
-.monthly-item .mi-val{font-size:15px;font-weight:500}
+.monthly-block{background:var(--surface);border-radius:10px;border:.5px solid var(--border);padding:1rem 1.125rem;margin-bottom:.875rem}
+.monthly-block .mb-title{font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px}
+.monthly-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.monthly-item{background:var(--surface-muted);border-radius:8px;border:.5px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;gap:5px}
+.monthly-item .mi-label{font-size:10px;color:var(--text-muted);letter-spacing:.04em;text-transform:uppercase}
+.monthly-item .mi-val{font-size:20px;font-weight:700;letter-spacing:-.01em;color:var(--text-primary)}
 
 .breakdown{background:var(--surface);border-radius:10px;border:.5px solid var(--border);padding:.875rem 1.125rem}
 .brow{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:.5px solid var(--border)}
@@ -266,7 +267,13 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
 .mseg-price-field .mseg-reviews-input{flex:1;min-width:0}
 .mseg-unit{font-size:11px;color:var(--text-muted)}
 .mseg-dash{font-size:14px;color:var(--text-muted);flex-shrink:0}
-.mseg-stars-display{font-size:13px;font-weight:600;color:var(--warning)}
+.mseg-stars-display{font-size:13px;font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:4px}
+.star-row{display:inline-flex;gap:1px;vertical-align:middle}
+.star-row .s{font-size:15px;line-height:1;color:#d8d0c8}
+.star-row .s.full{color:#F7A800}
+.star-row .s.half{position:relative;display:inline-block;color:#d8d0c8}
+.star-row .s.half .sfg{position:absolute;left:0;top:0;color:#F7A800;width:50%;overflow:hidden;display:block}
+.star-row .s.half .sbg{display:block}
 .mseg-reviews-input{height:28px;padding:0 7px;border:.5px solid var(--border-strong);border-radius:6px;background:var(--surface);color:var(--text-primary);font-size:12px;font-family:inherit;width:100%}
 .mseg-reviews-input:focus{outline:none;border-color:var(--accent)}
 
@@ -578,6 +585,16 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
         </div>
       </div>
 
+      <!-- Monthly projection -->
+      <div class="monthly-block" id="monthly_block" style="display:none">
+        <div class="mb-title">Hochrechnung / Monat</div>
+        <div class="monthly-grid">
+          <div class="monthly-item"><span class="mi-label">Verkäufe</span><span class="mi-val" id="m_sales"></span></div>
+          <div class="monthly-item"><span class="mi-label">Umsatz brutto</span><span class="mi-val" id="m_revenue"></span></div>
+          <div class="monthly-item"><span class="mi-label">Nettogewinn</span><span class="mi-val" id="m_profit"></span></div>
+        </div>
+      </div>
+
       <!-- Donut chart -->
       <div class="chart-card">
         <div class="chart-card-title">Kostenaufschlüsselung — Anteil am VK-Preis</div>
@@ -590,16 +607,6 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
             </div>
           </div>
           <div class="donut-legend" id="donut_legend"></div>
-        </div>
-      </div>
-
-      <!-- Monthly projection -->
-      <div class="monthly-block" id="monthly_block" style="display:none">
-        <div class="mb-title">Hochrechnung / Monat</div>
-        <div class="monthly-grid">
-          <div class="monthly-item"><span class="mi-label">Verkäufe</span><span class="mi-val" id="m_sales"></span></div>
-          <div class="monthly-item"><span class="mi-label">Umsatz brutto</span><span class="mi-val" id="m_revenue"></span></div>
-          <div class="monthly-item"><span class="mi-label">Nettogewinn</span><span class="mi-val" id="m_profit"></span></div>
         </div>
       </div>
 
@@ -636,10 +643,16 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
 <!-- ── MARKTEINSCHÄTZUNG & LIEFERANTEN ── -->
 <div class="notes-section">
 
-  <!-- Markteinschätzung -->
-  <div class="notes-card">
-    <div class="notes-card-title">Markteinschätzung</div>
-    <textarea id="markt_notiz" class="notes-ta" placeholder="Eigene Einschätzung zu Markt, Wettbewerb, Trends, Risiken, Potenzial…"></textarea>
+  <!-- Markteinschätzung + Anfrage Lieferanten (linke Spalte) -->
+  <div style="display:flex;flex-direction:column;gap:1rem">
+    <div class="notes-card">
+      <div class="notes-card-title">Markteinschätzung</div>
+      <textarea id="markt_notiz" class="notes-ta" placeholder="Eigene Einschätzung zu Markt, Wettbewerb, Trends, Risiken, Potenzial…"></textarea>
+    </div>
+    <div class="notes-card">
+      <div class="notes-card-title">Anfrage Lieferanten</div>
+      <textarea id="anfrage_lieferanten" class="notes-ta" placeholder="Anfragetext für Lieferanten, Muster-E-Mail, Checkliste…"></textarea>
+    </div>
   </div>
 
   <!-- Lieferanten -->
@@ -903,7 +916,7 @@ function updateSVChart() {
         '<div class="mseg-row-label">Ø Sterne</div>' +
         '<div class="mseg-slider-wrap">' +
           '<input type="range" class="mseg-slider" id="seg_stars_' + i + '" min="1" max="5" step="0.1" value="' + d.stars + '" oninput="updateSeg(' + i + ')">' +
-          '<span class="mseg-stars-display" id="seg_sdisp_' + i + '">' + d.stars.toFixed(1) + ' ★</span>' +
+          '<span class="mseg-stars-display" id="seg_sdisp_' + i + '"></span>' +
         '</div>' +
       '</div>' +
 
@@ -912,12 +925,29 @@ function updateSVChart() {
         '<input class="mseg-reviews-input" id="seg_reviews_' + i + '" type="number" min="0" step="10" value="' + d.reviews + '" placeholder="z.B. 500">' +
       '</div>';
     grid.appendChild(el);
+    updateSeg(i);
   });
 })();
 
+function renderStars(val) {
+  val = Math.max(0, Math.min(5, parseFloat(val) || 0));
+  let html = '<span class="star-row">';
+  for (let i = 1; i <= 5; i++) {
+    if (val >= i) {
+      html += '<span class="s full">★</span>';
+    } else if (val >= i - 0.5) {
+      html += '<span class="s half"><span class="sfg">★</span><span class="sbg">★</span></span>';
+    } else {
+      html += '<span class="s">★</span>';
+    }
+  }
+  html += '</span>';
+  return val.toFixed(1) + ' ' + html;
+}
+
 function updateSeg(i) {
   const stars = parseFloat(document.getElementById('seg_stars_' + i).value);
-  document.getElementById('seg_sdisp_' + i).textContent = stars.toFixed(1) + ' ★';
+  document.getElementById('seg_sdisp_' + i).innerHTML = renderStars(stars);
 }
 
 /* ─────────── LIEFERANTEN TABELLE ─────────── */
@@ -1015,6 +1045,7 @@ const IMPORT_MAP = [
   { id:'target_margin',         label:'Zielmarge %',               keys:['target_margin','targetMargin','margin_target','desired_margin','profit_margin_target','min_margin'], pct:true },
   // ── Freitextfelder ──
   { id:'markt_notiz',           label:'Markteinschätzung',         keys:['markt_notiz','market_notes','marketNotes','notes','description','analysis','market_analysis','remarks','comment','summary'] },
+  { id:'anfrage_lieferanten',   label:'Anfrage Lieferanten',       keys:['anfrage_lieferanten','supplier_inquiry','supplierInquiry','inquiry_template','anfragetext','supplier_message','supplier_email','anfrage'] },
   // ── Markt-Links ──
   { id:'mlink_amazon',          label:'Link Amazon Hauptsuchbegriff', keys:['mlink_amazon','amazon_search_url','amazonSearchUrl','amazon_url','search_url','amazon_link','keyword_url'] },
   { id:'mlink_low',             label:'Link Niedrigpreis-Konkurrent', keys:['mlink_low','competitor_low_url','competitorLowUrl','low_competitor_url','low_price_competitor','competitor_cheap_url'] },
