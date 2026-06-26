@@ -989,35 +989,35 @@ function updateSupLink(inp) {
 // pct:true = Wert wird ggf. als Dezimal erkannt (0.15 → 15)
 const IMPORT_MAP = [
   // ── Produkt & Markt ──
-  { id:'produktname',           label:'Produktname',               keys:['title','name','product_name','productName','product_title','asin_title','listing_title'] },
-  { id:'sv_keyword',            label:'Haupt-Suchbegriff',         keys:['keyword','main_keyword','mainKeyword','search_term','searchTerm','primary_keyword','root_keyword','seed_keyword'] },
-  { id:'sv_total_rev',          label:'Gesamtumsatz/Monat (€)',    keys:['monthly_revenue','monthlyRevenue','total_revenue','totalRevenue','market_revenue','niche_revenue','category_revenue','estimated_revenue','market_size'] },
-  { id:'sv_avg_rev',            label:'Ø Umsatz/Seller (€)',       keys:['avg_revenue','avgRevenue','average_revenue','revenue_per_seller','avg_seller_revenue','mean_revenue','median_revenue'] },
+  { id:'produktname',           label:'Produktname',               keys:['produktname','title','name','product_name','productName','product_title','asin_title','listing_title'] },
+  { id:'sv_keyword',            label:'Haupt-Suchbegriff',         keys:['sv_keyword','keyword','main_keyword','mainKeyword','search_term','searchTerm','primary_keyword','root_keyword','seed_keyword'] },
+  { id:'sv_total_rev',          label:'Gesamtumsatz/Monat (€)',    keys:['sv_total_rev','monthly_revenue','monthlyRevenue','total_revenue','totalRevenue','market_revenue','niche_revenue','category_revenue','estimated_revenue','market_size'] },
+  { id:'sv_avg_rev',            label:'Ø Umsatz/Seller (€)',       keys:['sv_avg_rev','avg_revenue','avgRevenue','average_revenue','revenue_per_seller','avg_seller_revenue','mean_revenue','median_revenue'] },
   // ── Kalkulation ──
-  { id:'vk',                    label:'VK brutto (€)',              keys:['price','selling_price','sellingPrice','sale_price','retail_price','amazon_price','avg_price','average_price','buy_box_price','buyBoxPrice','listing_price'] },
-  { id:'ek',                    label:'EK netto (€)',               keys:['cost','purchase_price','purchasePrice','unit_cost','cogs','buy_price','sourcing_price','supplier_price','manufacturing_cost','product_cost'] },
-  { id:'shipping_total',        label:'Versand gesamt (€)',         keys:['shipping_cost','shippingCost','freight_cost','total_shipping','shipping_total','import_cost','logistics_cost','freight_total'] },
-  { id:'qty',                   label:'Stückzahl Sendung',          keys:['quantity','qty','order_quantity','moq','units','batch_size','shipment_qty','units_per_order'] },
-  { id:'customs_pct',           label:'Zoll % auf EK',             keys:['customs_rate','customsRate','duty_rate','import_duty','tariff','customs_pct','duty_pct','import_tax'], pct:true },
+  { id:'vk',                    label:'VK brutto (€)',              keys:['vk','price','selling_price','sellingPrice','sale_price','retail_price','amazon_price','avg_price','average_price','buy_box_price','buyBoxPrice','listing_price'] },
+  { id:'ek',                    label:'EK netto (€)',               keys:['ek','cost','purchase_price','purchasePrice','unit_cost','cogs','buy_price','sourcing_price','supplier_price','manufacturing_cost','product_cost'] },
+  { id:'shipping_total',        label:'Versand gesamt (€)',         keys:['shipping_total','shipping_cost','shippingCost','freight_cost','total_shipping','import_cost','logistics_cost','freight_total'] },
+  { id:'qty',                   label:'Stückzahl Sendung',          keys:['qty','quantity','order_quantity','moq','units','batch_size','shipment_qty','units_per_order'] },
+  { id:'customs_pct',           label:'Zoll % auf EK',             keys:['customs_pct','customs_rate','customsRate','duty_rate','import_duty','tariff','duty_pct','import_tax'], pct:true },
   { id:'customs_fixed',         label:'Zoll Festbetrag/Stück (€)', keys:['customs_fixed','customsFixed','duty_fixed','duty_per_unit','fixed_duty'] },
-  { id:'fba_manual',            label:'FBA-Gebühr manuell (€)',    keys:['fba_fee','fbaFee','fulfillment_fee','amazon_fba_fee','fba_cost','pick_pack_fee','fulfillment_cost'] },
-  { id:'sales_month',           label:'Verkäufe/Monat',            keys:['monthly_sales','monthlySales','estimated_sales','sales_volume','units_sold','avg_monthly_sales','monthly_units','sales_estimate','unit_sales'] },
+  { id:'fba_manual',            label:'FBA-Gebühr manuell (€)',    keys:['fba_manual','fba_class','fba_fee','fbaFee','fulfillment_fee','amazon_fba_fee','fba_cost','pick_pack_fee','fulfillment_cost'] },
+  { id:'sales_month',           label:'Verkäufe/Monat',            keys:['sales_month','monthly_sales','monthlySales','estimated_sales','sales_volume','units_sold','avg_monthly_sales','monthly_units','sales_estimate','unit_sales'] },
   // ── Lagerkosten ──
-  { id:'storage_monthly',       label:'Lagerkosten/Monat (€)',     keys:['storage_cost','storageCost','warehouse_cost','monthly_storage','storage_fees','inventory_storage'] },
+  { id:'storage_monthly',       label:'Lagerkosten/Monat (€)',     keys:['storage_monthly','storage_cost','storageCost','warehouse_cost','monthly_storage','storage_fees','inventory_storage'] },
   { id:'storage_units',         label:'Ø Lagerbestand (Stück)',    keys:['storage_units','storageUnits','avg_inventory','average_inventory','inventory_level','avg_stock'] },
   // ── Parameter ──
-  { id:'prov_pct',              label:'Amazon-Provision %',        keys:['commission','commission_rate','referral_fee','referral_pct','amazon_fee_pct','referral_fee_rate','amazon_commission'], pct:true },
-  { id:'ppc_pct',               label:'PPC-Kosten %',              keys:['ppc','ppc_rate','advertising_rate','tacos','ad_spend_pct','acos','ppc_pct','advertising_pct','ad_cost_pct'], pct:true },
-  { id:'mwst_pct',              label:'MwSt. %',                   keys:['vat','vat_rate','tax_rate','mwst','tax_pct','sales_tax','gst'], pct:true },
-  { id:'return_pct',            label:'Retourenquote %',           keys:['return_rate','returnRate','refund_rate','returns_pct','return_pct','chargeback_rate'], pct:true },
-  { id:'return_unsellable_pct', label:'Unverkäufl. Retouren %',    keys:['unsellable_rate','unsellableRate','damaged_return_rate','loss_rate','waste_rate'], pct:true },
+  { id:'prov_pct',              label:'Amazon-Provision %',        keys:['prov_pct','commission','commission_rate','referral_fee','referral_pct','amazon_fee_pct','referral_fee_rate','amazon_commission'], pct:true },
+  { id:'ppc_pct',               label:'PPC-Kosten %',              keys:['ppc_pct','ppc','ppc_rate','advertising_rate','tacos','ad_spend_pct','acos','advertising_pct','ad_cost_pct'], pct:true },
+  { id:'mwst_pct',              label:'MwSt. %',                   keys:['mwst_pct','vat','vat_rate','tax_rate','mwst','tax_pct','sales_tax','gst'], pct:true },
+  { id:'return_pct',            label:'Retourenquote %',           keys:['return_pct','return_rate','returnRate','refund_rate','returns_pct','chargeback_rate'], pct:true },
+  { id:'return_unsellable_pct', label:'Unverkäufl. Retouren %',    keys:['return_unsellable_pct','unsellable_rate','unsellableRate','damaged_return_rate','loss_rate','waste_rate'], pct:true },
   { id:'target_margin',         label:'Zielmarge %',               keys:['target_margin','targetMargin','margin_target','desired_margin','profit_margin_target','min_margin'], pct:true },
   // ── Freitextfelder ──
-  { id:'markt_notiz',           label:'Markteinschätzung',         keys:['market_notes','marketNotes','notes','description','analysis','market_analysis','remarks','comment','summary'] },
+  { id:'markt_notiz',           label:'Markteinschätzung',         keys:['markt_notiz','market_notes','marketNotes','notes','description','analysis','market_analysis','remarks','comment','summary'] },
   // ── Markt-Links ──
-  { id:'mlink_amazon',          label:'Link Amazon Hauptsuchbegriff', keys:['amazon_search_url','amazonSearchUrl','amazon_url','search_url','amazon_link','keyword_url'] },
-  { id:'mlink_low',             label:'Link Niedrigpreis-Konkurrent', keys:['competitor_low_url','competitorLowUrl','low_competitor_url','low_price_competitor','competitor_cheap_url'] },
-  { id:'mlink_high',            label:'Link Höherpreis-Konkurrent',   keys:['competitor_high_url','competitorHighUrl','high_competitor_url','high_price_competitor','competitor_premium_url'] },
+  { id:'mlink_amazon',          label:'Link Amazon Hauptsuchbegriff', keys:['mlink_amazon','amazon_search_url','amazonSearchUrl','amazon_url','search_url','amazon_link','keyword_url'] },
+  { id:'mlink_low',             label:'Link Niedrigpreis-Konkurrent', keys:['mlink_low','competitor_low_url','competitorLowUrl','low_competitor_url','low_price_competitor','competitor_cheap_url'] },
+  { id:'mlink_high',            label:'Link Höherpreis-Konkurrent',   keys:['mlink_high','competitor_high_url','competitorHighUrl','high_competitor_url','high_price_competitor','competitor_premium_url'] },
 ];
 
 // Suchvolumen Monate — viele mögliche Key-Varianten
@@ -1095,7 +1095,7 @@ function previewImport() {
   let svFound = 0;
   const svObj = findVal(obj, ['search_volume','searchVolume','monthly_search_volume','volume_by_month','monthly_volume','keyword_volume','sv_monthly','search_volume_trend']);
   if (svObj && typeof svObj === 'object' && !Array.isArray(svObj)) svFound = Object.keys(svObj).length;
-  const svArr = findVal(obj, ['sv_array','volume_array','monthly_volumes','volumes']);
+  const svArr = findVal(obj, ['sv_months','sv_array','volume_array','monthly_volumes','volumes','search_volumes','monthly_sv_array']);
   if (Array.isArray(svArr) && svArr.length >= 12) svFound = 12;
   // Segmente
   const segArr = findVal(obj, ['market_segments','marketSegments','segments','price_segments','segmente']);
@@ -1150,7 +1150,7 @@ function applyImport() {
   let svObj = findVal(obj, svSources);
   // Fallback: direkt Array der Länge 12
   if (!svObj || typeof svObj !== 'object') {
-    const arr = findVal(obj, ['sv_array','volume_array','monthly_volumes','volumes']);
+    const arr = findVal(obj, ['sv_months','sv_array','volume_array','monthly_volumes','volumes','search_volumes','monthly_sv_array']);
     if (Array.isArray(arr) && arr.length >= 12) svObj = Object.fromEntries(arr.map((v,i) => [String(i+1), v]));
   }
   if (svObj && typeof svObj === 'object' && !Array.isArray(svObj)) {
