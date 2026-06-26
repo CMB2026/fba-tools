@@ -1100,7 +1100,17 @@ function previewImport() {
   if (Array.isArray(svArr) && svArr.length >= 12) svFound = 12;
   // Segmente
   const segArr = findVal(obj, ['market_segments','marketSegments','segments','price_segments','segmente']);
-  if (Array.isArray(segArr) && segArr.length > 0) rows.push({ label: 'Markt-Segmentierung', val: segArr.length + ' Segmente' });
+  if (Array.isArray(segArr) && segArr.length > 0) {
+    rows.push({ label: 'Markt-Segmentierung', val: segArr.length + ' Segmente' });
+  } else {
+    // flache Keys: segment_low_* / segment_high_*
+    const hasFlatSeg = ['low','high'].some(function(p) {
+      return obj['segment_' + p + '_price'] !== undefined ||
+             obj['segment_' + p + '_stars'] !== undefined ||
+             obj['segment_' + p + '_reviews'] !== undefined;
+    });
+    if (hasFlatSeg) rows.push({ label: 'Markt-Segmentierung', val: 'Preis / Sterne / Bewertungen' });
+  }
   // Lieferanten
   const supArr = findVal(obj, ['suppliers','lieferanten','potential_suppliers','potentialSuppliers','supplier_list']);
   if (Array.isArray(supArr) && supArr.length > 0) rows.push({ label: 'Lieferanten', val: supArr.length + ' Einträge' });
@@ -1162,29 +1172,56 @@ function applyImport() {
     updateSVChart();
   }
 
-  // Markt-Segmentierung
+  // Hilfsfunktion: Preis-String "19-35€" → {min, max}
+  function parsePriceRange(str) {
+    if (typeof str === 'number') return null;
+    const m = String(str).match(/(\d+[.,]?\d*)\s*[-–]\s*(\d+[.,]?\d*)/);
+    if (!m) return null;
+    return { min: parseFloat(m[1].replace(',','.')), max: parseFloat(m[2].replace(',','.')) };
+  }
+  function setSegField(id, val) {
+    const el = document.getElementById(id);
+    if (!el || val === null || val === undefined) return;
+    el.value = val;
+    el.dispatchEvent(new Event('input'));
+  }
+  function setSegStars(i, val) {
+    if (val === null || val === undefined) return;
+    const el = document.getElementById('seg_stars_' + i);
+    if (el) { el.value = val; updateSeg(i); }
+  }
+
+  // Markt-Segmentierung — Variante 1: Array
   const segArr = findVal(obj, ['market_segments','marketSegments','segments','price_segments','segmente']);
   if (Array.isArray(segArr)) {
     segArr.forEach(function(seg, i) {
-      if (i > 1) return; // nur 2 Segmente
+      if (i > 1) return;
       const flat = flattenObj(seg);
-      const setField = function(id, keys) {
-        const v = findVal(flat, keys);
-        if (v === null) return;
-        const el = document.getElementById(id);
-        if (el) { el.value = v; el.dispatchEvent(new Event('input')); }
-      };
-      setField('seg_name_' + i,    ['name','segment_name','segmentName','label','titel']);
-      setField('seg_pmin_' + i,    ['price_min','priceMin','min_price','von','from','min']);
-      setField('seg_pmax_' + i,    ['price_max','priceMax','max_price','bis','to','max']);
-      setField('seg_reviews_' + i, ['reviews','review_count','bewertungen','avg_reviews','anzahl_bewertungen']);
-      const starsVal = findVal(flat, ['stars','rating','avg_stars','avg_rating','sterne','ø_sterne']);
-      if (starsVal !== null) {
-        const sEl = document.getElementById('seg_stars_' + i);
-        if (sEl) { sEl.value = starsVal; updateSeg(i); }
-      }
+      const gf = function(keys) { return findVal(flat, keys); };
+      setSegField('seg_name_' + i, gf(['name','segment_name','segmentName','label','titel']));
+      setSegField('seg_pmin_' + i, gf(['price_min','priceMin','min_price','von','from','min']));
+      setSegField('seg_pmax_' + i, gf(['price_max','priceMax','max_price','bis','to','max']));
+      setSegField('seg_reviews_' + i, gf(['reviews','review_count','bewertungen','avg_reviews','anzahl_bewertungen']));
+      setSegStars(i, gf(['stars','rating','avg_stars','avg_rating','sterne']));
     });
   }
+
+  // Markt-Segmentierung — Variante 2: flache Keys (segment_low_*, segment_high_*)
+  const segPrefixes = [['low','0'],['high','1']];
+  segPrefixes.forEach(function(pair) {
+    const pfx = pair[0], idx = pair[1];
+    const price  = obj['segment_' + pfx + '_price']  || obj['seg_' + pfx + '_price'];
+    const stars  = obj['segment_' + pfx + '_stars']  || obj['seg_' + pfx + '_stars'];
+    const revs   = obj['segment_' + pfx + '_reviews']|| obj['seg_' + pfx + '_reviews'];
+    const name   = obj['segment_' + pfx + '_name']   || obj['seg_' + pfx + '_name'];
+    if (price !== undefined) {
+      const pr = parsePriceRange(price);
+      if (pr) { setSegField('seg_pmin_' + idx, pr.min); setSegField('seg_pmax_' + idx, pr.max); }
+    }
+    if (stars   !== undefined) setSegStars(idx, stars);
+    if (revs    !== undefined) setSegField('seg_reviews_' + idx, revs);
+    if (name    !== undefined) setSegField('seg_name_'    + idx, name);
+  });
 
   // Potenzielle Lieferanten
   const supArr = findVal(obj, ['suppliers','lieferanten','potential_suppliers','potentialSuppliers','supplier_list']);
