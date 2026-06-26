@@ -200,6 +200,26 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 .empty-c{color:var(--text-muted)!important;font-weight:400!important}
 .sz-empty{text-align:center;padding:1.5rem;font-size:12px;color:var(--text-muted)}
 
+/* ── NOTES / LIEFERANTEN SECTION ── */
+.notes-section{padding:0 1.25rem 1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.notes-card{background:var(--surface);border:.5px solid var(--border);border-radius:10px;padding:.875rem 1.125rem}
+.notes-card-title{font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px}
+.notes-ta{width:100%;min-height:100px;padding:8px 10px;border:.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-muted);color:var(--text-primary);font-size:13px;font-family:inherit;resize:vertical;line-height:1.5}
+.notes-ta:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+
+.sup-table{width:100%;border-collapse:collapse}
+.sup-table th{font-size:10px;font-weight:500;letter-spacing:.07em;color:var(--text-muted);text-transform:uppercase;padding:0 6px 7px;text-align:left;border-bottom:.5px solid var(--border)}
+.sup-table td{padding:4px 4px;border-bottom:.5px solid var(--border);vertical-align:middle}
+.sup-table tr:last-child td{border-bottom:none}
+.sup-table .td-num{width:20px;font-size:10px;color:var(--text-muted);text-align:center;padding:4px 2px}
+.sup-input{height:30px;padding:0 7px;border:.5px solid var(--border-strong);border-radius:6px;background:var(--surface-muted);color:var(--text-primary);font-size:12px;font-family:inherit;width:100%}
+.sup-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-bg)}
+.sup-input.url-input{color:var(--accent)}
+.sup-link-display{display:none;font-size:12px;color:var(--accent);word-break:break-all;text-decoration:underline}
+.td-name{width:28%}
+.td-url{width:35%}
+.td-comment{width:37%}
+
 /* ── PRINT / EXPORT ── */
 @media print{
   header .tabs,.h-product-wrap .placeholder-label,.export-btn,.badge{display:none}
@@ -209,8 +229,13 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
   .panel-left{display:none}
   .panel-right{padding:0}
   body{background:white;color:black}
-  .ampel-card,.chart-card,.breakdown,.monthly-block{break-inside:avoid}
+  .ampel-card,.chart-card,.breakdown,.monthly-block,.notes-section{break-inside:avoid}
   @page{margin:1.5cm}
+  .sup-input:not(.url-input){border:none;background:transparent;padding:0}
+  .url-input{display:none}
+  .sup-link-display{display:inline!important}
+  .notes-ta{border:none;background:transparent;padding:0;resize:none}
+  .notes-section{grid-template-columns:1fr 1fr}
 }
 
 @media(max-width:900px){
@@ -422,6 +447,34 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
     </div>
   </div>
 </div>
+
+<!-- ── MARKTEINSCHÄTZUNG & LIEFERANTEN ── -->
+<div class="notes-section">
+
+  <!-- Markteinschätzung -->
+  <div class="notes-card">
+    <div class="notes-card-title">Markteinschätzung</div>
+    <textarea id="markt_notiz" class="notes-ta" placeholder="Eigene Einschätzung zu Markt, Wettbewerb, Trends, Risiken, Potenzial…"></textarea>
+  </div>
+
+  <!-- Lieferanten -->
+  <div class="notes-card">
+    <div class="notes-card-title">Potenzielle Lieferanten</div>
+    <table class="sup-table">
+      <thead>
+        <tr>
+          <th class="td-num">#</th>
+          <th class="td-name">Lieferant</th>
+          <th class="td-url">Alibaba-Link</th>
+          <th class="td-comment">Kommentar</th>
+        </tr>
+      </thead>
+      <tbody id="sup_tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
 </div><!-- /tab-single -->
 
 <!-- ═══════════════════════════════════════
@@ -528,6 +581,35 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 </div><!-- /tab-szenarien -->
 
 <script>
+/* ─────────── LIEFERANTEN TABELLE ─────────── */
+(function buildSupplierTable() {
+  const tbody = document.getElementById('sup_tbody');
+  for (let i = 0; i < 5; i++) {
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="td-num">' + (i + 1) + '</td>' +
+      '<td class="td-name"><input class="sup-input" type="text" placeholder="Lieferant ' + (i + 1) + '"></td>' +
+      '<td class="td-url">' +
+        '<input class="sup-input url-input" type="url" placeholder="https://alibaba.com/…" oninput="updateSupLink(this)">' +
+        '<a class="sup-link-display" href="#" target="_blank">Link</a>' +
+      '</td>' +
+      '<td class="td-comment"><input class="sup-input" type="text" placeholder="Kommentar…"></td>';
+    tbody.appendChild(tr);
+  }
+})();
+
+function updateSupLink(inp) {
+  const a = inp.nextElementSibling;
+  const url = inp.value.trim();
+  if (url) {
+    a.href = url;
+    a.textContent = url.length > 45 ? url.substring(0, 42) + '…' : url;
+  } else {
+    a.href = '#';
+    a.textContent = 'Link';
+  }
+}
+
 /* ─────────── HELPERS ─────────── */
 const $  = id => document.getElementById(id);
 const fmt  = v => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2) + ' €';
