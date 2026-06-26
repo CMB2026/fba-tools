@@ -200,6 +200,27 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 .empty-c{color:var(--text-muted)!important;font-weight:400!important}
 .sz-empty{text-align:center;padding:1.5rem;font-size:12px;color:var(--text-muted)}
 
+/* ── MARKT-SEGMENTIERUNG ── */
+.mseg-section{padding:0 1.25rem .875rem}
+.mseg-card{background:var(--surface);border:.5px solid var(--border);border-radius:10px;padding:.875rem 1.125rem}
+.mseg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:.75rem}
+.mseg-item{background:var(--surface-muted);border:.5px solid var(--border);border-radius:8px;padding:.75rem .875rem;display:flex;flex-direction:column;gap:10px}
+.mseg-name-input{width:100%;border:none;background:transparent;font-size:13px;font-weight:500;color:var(--text-primary);font-family:inherit;outline:none;border-bottom:.5px solid var(--border-strong);padding-bottom:5px}
+.mseg-name-input::placeholder{color:var(--text-muted);font-weight:400}
+.mseg-row{display:flex;flex-direction:column;gap:4px}
+.mseg-row-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500}
+.mseg-slider-wrap{display:flex;align-items:center;gap:8px}
+.mseg-val{font-size:13px;font-weight:600;color:var(--text-primary);min-width:48px;text-align:right;white-space:nowrap}
+input[type=range].mseg-slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--border-strong);outline:none;cursor:pointer}
+input[type=range].mseg-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+.mseg-range-row{display:flex;align-items:center;gap:6px}
+.mseg-range-row .mseg-slider{flex:1}
+.mseg-range-display{font-size:12px;font-weight:600;color:var(--accent);white-space:nowrap;min-width:90px}
+.mseg-stars-display{font-size:13px;font-weight:600;color:var(--warning)}
+.mseg-reviews-input{height:28px;padding:0 7px;border:.5px solid var(--border-strong);border-radius:6px;background:var(--surface);color:var(--text-primary);font-size:12px;font-family:inherit;width:100%}
+.mseg-reviews-input:focus{outline:none;border-color:var(--accent)}
+
 /* ── NOTES / LIEFERANTEN SECTION ── */
 .notes-section{padding:0 1.25rem 1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 .notes-card{background:var(--surface);border:.5px solid var(--border);border-radius:10px;padding:.875rem 1.125rem}
@@ -236,6 +257,9 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
   .sup-link-display{display:inline!important}
   .notes-ta{border:none;background:transparent;padding:0;resize:none}
   .notes-section{grid-template-columns:1fr 1fr}
+  input[type=range].mseg-slider{display:none}
+  .mseg-reviews-input{border:none;background:transparent;padding:0}
+  .mseg-name-input{border-bottom:.5px solid #ccc}
 }
 
 @media(max-width:900px){
@@ -448,6 +472,14 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
   </div>
 </div>
 
+<!-- ── MARKT-SEGMENTIERUNG & RATINGS ── -->
+<div class="mseg-section">
+  <div class="mseg-card">
+    <div class="notes-card-title" style="margin-bottom:0">Markt-Segmentierung &amp; Ratings</div>
+    <div class="mseg-grid" id="mseg_grid"></div>
+  </div>
+</div>
+
 <!-- ── MARKTEINSCHÄTZUNG & LIEFERANTEN ── -->
 <div class="notes-section">
 
@@ -581,6 +613,57 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 </div><!-- /tab-szenarien -->
 
 <script>
+/* ─────────── MARKT-SEGMENTIERUNG ─────────── */
+(function buildSegments() {
+  const defaults = [
+    { name: 'Niedrigpreisig', prMin: 10, prMax: 25, stars: 3.8, reviews: 1200 },
+    { name: 'Mittelpreisig',  prMin: 25, prMax: 50, stars: 4.1, reviews: 300 },
+    { name: 'Premium',        prMin: 50, prMax: 100, stars: 4.4, reviews: 80 }
+  ];
+  const grid = document.getElementById('mseg_grid');
+  defaults.forEach((d, i) => {
+    const el = document.createElement('div');
+    el.className = 'mseg-item';
+    el.innerHTML =
+      '<input class="mseg-name-input" type="text" value="' + d.name + '" placeholder="Segment ' + (i+1) + '">' +
+
+      '<div class="mseg-row">' +
+        '<div class="mseg-row-label">Preisspanne</div>' +
+        '<div class="mseg-range-row">' +
+          '<span style="font-size:11px;color:var(--text-muted)">von</span>' +
+          '<input type="range" class="mseg-slider" id="seg_pmin_' + i + '" min="0" max="200" step="1" value="' + d.prMin + '" oninput="updateSeg(' + i + ')">' +
+          '<span style="font-size:11px;color:var(--text-muted)">bis</span>' +
+          '<input type="range" class="mseg-slider" id="seg_pmax_' + i + '" min="0" max="200" step="1" value="' + d.prMax + '" oninput="updateSeg(' + i + ')">' +
+        '</div>' +
+        '<div class="mseg-range-display" id="seg_pdisp_' + i + '">' + d.prMin + ' € – ' + d.prMax + ' €</div>' +
+      '</div>' +
+
+      '<div class="mseg-row">' +
+        '<div class="mseg-row-label">Ø Sterne</div>' +
+        '<div class="mseg-slider-wrap">' +
+          '<input type="range" class="mseg-slider" id="seg_stars_' + i + '" min="1" max="5" step="0.1" value="' + d.stars + '" oninput="updateSeg(' + i + ')">' +
+          '<span class="mseg-stars-display" id="seg_sdisp_' + i + '">' + d.stars.toFixed(1) + ' ★</span>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="mseg-row">' +
+        '<div class="mseg-row-label">Ø Anzahl Bewertungen</div>' +
+        '<input class="mseg-reviews-input" type="number" id="seg_rev_' + i + '" min="0" step="10" value="' + d.reviews + '" placeholder="z.B. 500">' +
+      '</div>';
+    grid.appendChild(el);
+  });
+})();
+
+function updateSeg(i) {
+  const pMin = parseFloat(document.getElementById('seg_pmin_' + i).value);
+  const pMax = parseFloat(document.getElementById('seg_pmax_' + i).value);
+  const stars = parseFloat(document.getElementById('seg_stars_' + i).value);
+  // swap if crossed
+  const lo = Math.min(pMin, pMax), hi = Math.max(pMin, pMax);
+  document.getElementById('seg_pdisp_' + i).textContent = lo.toFixed(0) + ' € – ' + hi.toFixed(0) + ' €';
+  document.getElementById('seg_sdisp_' + i).textContent = stars.toFixed(1) + ' ★';
+}
+
 /* ─────────── LIEFERANTEN TABELLE ─────────── */
 (function buildSupplierTable() {
   const tbody = document.getElementById('sup_tbody');
