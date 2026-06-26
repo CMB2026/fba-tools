@@ -546,6 +546,7 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
         <div class="ampel-text">
           <h3 id="ampel_title"></h3>
           <p id="ampel_msg"></p>
+          <span id="ampel_monthly" style="display:none;font-size:12px;font-weight:600;margin-top:2px;letter-spacing:.01em"></span>
         </div>
       </div>
 
@@ -1625,6 +1626,20 @@ function calc() {
     dot.innerHTML = '<i class="ti ti-x" style="color:#fff;font-size:19px"></i>';
     title.textContent = 'Verlustgeschäft — Produkt nicht viable';
     msg.textContent   = 'Nettomarge ' + fmtP(marginPct) + '. Notwendiger VK und Max. EK siehe unten.';
+  }
+
+  // Gewinn/Verlust pro Monat
+  const salesM = gv('sales_month', 0);
+  const ampelM = $('ampel_monthly');
+  if (ampelM) {
+    if (salesM > 0) {
+      const monthlyP = netProfit * salesM;
+      ampelM.style.display = 'inline-block';
+      ampelM.textContent = (monthlyP >= 0 ? '+' : '') + fmt(monthlyP) + ' / Monat (' + salesM + ' Stk.)';
+      ampelM.style.color = monthlyP < 0 ? 'var(--danger)' : 'var(--success)';
+    } else {
+      ampelM.style.display = 'none';
+    }
   }
 }
 
