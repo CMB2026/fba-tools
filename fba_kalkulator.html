@@ -212,7 +212,7 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 
 /* ── SUCHVOLUMEN ── */
 .sv-section{margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:.5px solid var(--border)}
-.sv-top-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.sv-top-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
 .sv-top-grid .field-full{grid-column:1/-1}
 .sv-chart-wrap{height:110px;position:relative}
 .sv-inputs-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:6px}
@@ -398,9 +398,14 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
           <span class="hint">Marktgröße geschätzt</span>
         </div>
         <div class="field">
-          <label>Ø Umsatz pro Verkäufer/Monat (€)</label>
+          <label>Ø Umsatz/Seller/Monat (€)</label>
           <input type="number" id="sv_avg_rev" min="0" step="10" placeholder="0">
           <span class="hint">Durchschnitt Top-Seller</span>
+        </div>
+        <div class="field">
+          <label>Ø Suchvolumen/Monat</label>
+          <div id="sv_avg_display" style="height:34px;padding:0 9px;border:.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-muted);color:var(--text-primary);font-size:13px;display:flex;align-items:center;font-weight:500">—</div>
+          <span class="hint">Berechnet aus Jan–Dez</span>
         </div>
       </div>
       <div style="font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">Suchvolumen-Verlauf (Saisonalität)</div>
@@ -815,6 +820,10 @@ function updateSVChart() {
   const vals = SV_MONTHS.map((_, i) => parseFloat(document.getElementById('sv_' + i)?.value) || 0);
   svChart.data.datasets[0].data = vals;
   svChart.update();
+  const filled = vals.filter(v => v > 0);
+  const avg = filled.length ? Math.round(filled.reduce((a, b) => a + b, 0) / filled.length) : 0;
+  const el = document.getElementById('sv_avg_display');
+  if (el) el.textContent = filled.length ? avg.toLocaleString('de-DE') : '—';
 }
 
 /* ─────────── MARKT-SEGMENTIERUNG ─────────── */
