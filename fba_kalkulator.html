@@ -931,6 +931,7 @@ function updateSVChart() {
 
 function renderStars(val) {
   val = Math.max(0, Math.min(5, parseFloat(val) || 0));
+  val = Math.round(val * 2) / 2; // Amazon-Rundung: x.25→.5, x.75→nächster Stern
   let html = '<span class="star-row">';
   for (let i = 1; i <= 5; i++) {
     if (val >= i) {
