@@ -203,7 +203,7 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 /* ── MARKT-SEGMENTIERUNG ── */
 .mseg-section{padding:0 1.25rem .875rem}
 .mseg-card{background:var(--surface);border:.5px solid var(--border);border-radius:10px;padding:.875rem 1.125rem}
-.mseg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:.75rem}
+.mseg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-top:.75rem}
 .mseg-item{background:var(--surface-muted);border:.5px solid var(--border);border-radius:8px;padding:.75rem .875rem;display:flex;flex-direction:column;gap:10px}
 .mseg-name-input{width:100%;border:none;background:transparent;font-size:13px;font-weight:500;color:var(--text-primary);font-family:inherit;outline:none;border-bottom:.5px solid var(--border-strong);padding-bottom:5px}
 .mseg-name-input::placeholder{color:var(--text-muted);font-weight:400}
@@ -263,11 +263,55 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
 }
 
 @media(max-width:900px){
-  .layout{grid-template-columns:1fr}
+  /* Layout */
+  body{overflow-x:hidden}
+  .layout{grid-template-columns:1fr;display:block}
   .panel-left{border-right:none;border-bottom:.5px solid var(--border)}
+  .panel-right{padding:1rem}
+
+  /* Header */
+  header{flex-wrap:wrap;height:auto;padding:.5rem .875rem;gap:6px;position:relative}
+  .h-brand{margin-right:0}
+  .tabs{order:-1;width:100%;border-bottom:.5px solid var(--border);margin:0 -.875rem;padding:0 .875rem}
+  .h-product-wrap{flex:1;border:none;padding:0;min-width:0}
+  .h-right{margin-left:auto}
+
+  /* Ergebnisse */
+  .result-grid{grid-template-columns:1fr 1fr}
+  .chart-donut-wrap{grid-template-columns:1fr;justify-items:center}
+  .pf-card{grid-template-columns:1fr;gap:.5rem}
+  .pf-sep{display:none}
+  .monthly-grid{grid-template-columns:1fr 1fr}
+
+  /* Szenarien */
   .vk-grid{grid-template-columns:1fr}
   .sz-charts{grid-template-columns:1fr}
-  .result-grid{grid-template-columns:1fr 1fr}
+  .sz-base-row{flex-direction:column}
+  .sz-params{flex-direction:column}
+  .sz-base-row .field,.sz-params .field{min-width:unset;flex:unset;width:100%}
+
+  /* Vergleichstabelle */
+  .cmp-card{overflow-x:auto}
+  .cmp-table{min-width:400px}
+
+  /* Markt-Segmentierung */
+  .mseg-section{padding:0 .875rem .875rem}
+  .mseg-grid{grid-template-columns:1fr}
+  .mseg-range-row{flex-wrap:wrap;gap:4px}
+
+  /* Notizen & Lieferanten */
+  .notes-section{grid-template-columns:1fr;padding:0 .875rem .875rem}
+  .sup-table thead{display:none}
+  .sup-table tbody tr{display:flex;flex-direction:column;gap:5px;padding:.6rem 0;border-bottom:.5px solid var(--border)}
+  .sup-table tbody tr:last-child{border-bottom:none}
+  .sup-table td{padding:0;border:none;width:100%}
+  .td-num{display:none}
+  .sup-input{width:100%}
+  .sup-input.url-input::placeholder{content:"Alibaba-Link"}
+  .sup-table td::before{content:attr(data-label);display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;font-weight:500}
+
+  /* Allgemein */
+  .grid2{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -617,7 +661,6 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
 (function buildSegments() {
   const defaults = [
     { name: 'Niedrigpreisig', prMin: 10, prMax: 25, stars: 3.8, reviews: 1200 },
-    { name: 'Mittelpreisig',  prMin: 25, prMax: 50, stars: 4.1, reviews: 300 },
     { name: 'Premium',        prMin: 50, prMax: 100, stars: 4.4, reviews: 80 }
   ];
   const grid = document.getElementById('mseg_grid');
@@ -671,12 +714,12 @@ function updateSeg(i) {
     const tr = document.createElement('tr');
     tr.innerHTML =
       '<td class="td-num">' + (i + 1) + '</td>' +
-      '<td class="td-name"><input class="sup-input" type="text" placeholder="Lieferant ' + (i + 1) + '"></td>' +
-      '<td class="td-url">' +
+      '<td class="td-name" data-label="Lieferant"><input class="sup-input" type="text" placeholder="Lieferant ' + (i + 1) + '"></td>' +
+      '<td class="td-url" data-label="Alibaba-Link">' +
         '<input class="sup-input url-input" type="url" placeholder="https://alibaba.com/…" oninput="updateSupLink(this)">' +
         '<a class="sup-link-display" href="#" target="_blank">Link</a>' +
       '</td>' +
-      '<td class="td-comment"><input class="sup-input" type="text" placeholder="Kommentar…"></td>';
+      '<td class="td-comment" data-label="Kommentar"><input class="sup-input" type="text" placeholder="Kommentar…"></td>';
     tbody.appendChild(tr);
   }
 })();
