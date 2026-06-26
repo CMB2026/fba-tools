@@ -930,20 +930,20 @@ function updateSVChart() {
 })();
 
 function renderStars(val) {
-  val = Math.max(0, Math.min(5, parseFloat(val) || 0));
-  val = Math.round(val * 2) / 2; // Amazon-Rundung: x.25→.5, x.75→nächster Stern
+  const raw = Math.max(0, Math.min(5, parseFloat(val) || 0));
+  const rounded = Math.round(raw * 2) / 2; // Amazon-Rundung nur für Sterne
   let html = '<span class="star-row">';
   for (let i = 1; i <= 5; i++) {
-    if (val >= i) {
+    if (rounded >= i) {
       html += '<span class="s full">★</span>';
-    } else if (val >= i - 0.5) {
+    } else if (rounded >= i - 0.5) {
       html += '<span class="s half"><span class="sfg">★</span><span class="sbg">★</span></span>';
     } else {
       html += '<span class="s">★</span>';
     }
   }
   html += '</span>';
-  return val.toFixed(1) + ' ' + html;
+  return raw.toFixed(1) + ' ' + html; // Zahl exakt, Sterne gerundet
 }
 
 function updateSeg(i) {
