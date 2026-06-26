@@ -660,6 +660,10 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
   <!-- Markteinschätzung + Anfrage Lieferanten (linke Spalte) -->
   <div style="display:flex;flex-direction:column;gap:1rem">
     <div class="notes-card">
+      <div class="notes-card-title">Opportunity Check</div>
+      <input type="text" id="opportunity_check" class="notes-ta" style="height:36px;resize:none" placeholder="z.B. Sehr Gut – Marktlücke vorhanden, schwache Konkurrenz">
+    </div>
+    <div class="notes-card">
       <div class="notes-card-title">Markteinschätzung</div>
       <textarea id="markt_notiz" class="notes-ta" placeholder="Eigene Einschätzung zu Markt, Wettbewerb, Trends, Risiken, Potenzial…"></textarea>
     </div>
@@ -1059,6 +1063,7 @@ const IMPORT_MAP = [
   { id:'return_unsellable_pct', label:'Unverkäufl. Retouren %',    keys:['return_unsellable_pct','unsellable_rate','unsellableRate','damaged_return_rate','loss_rate','waste_rate'], pct:true },
   { id:'target_margin',         label:'Zielmarge %',               keys:['target_margin','targetMargin','margin_target','desired_margin','profit_margin_target','min_margin'], pct:true },
   // ── Freitextfelder ──
+  { id:'opportunity_check',     label:'Opportunity Check',          keys:['opportunity_check','opportunityCheck','opportunity','opportunity_score','market_opportunity','chance','bewertung','fazit'] },
   { id:'markt_notiz',           label:'Markteinschätzung',         keys:['markt_notiz','market_notes','marketNotes','notes','description','analysis','market_analysis','remarks','comment','summary'] },
   { id:'anfrage_lieferanten',   label:'Anfrage Lieferanten',       keys:['anfrage_lieferanten','supplier_inquiry','supplierInquiry','inquiry_template','anfragetext','supplier_message','supplier_email','anfrage'] },
   // ── Markt-Links ──
