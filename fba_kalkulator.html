@@ -773,7 +773,7 @@ let svChart = null;
     d.innerHTML = '<label>' + m + '</label><input type="number" id="sv_' + i + '" min="0" step="100" placeholder="0" oninput="updateSVChart()">';
     grid.appendChild(d);
   });
-  initSVChart();
+  // initSVChart() wird am Ende des Scripts aufgerufen (nach Helper-Definitionen)
 })();
 
 function initSVChart() {
@@ -1481,6 +1481,9 @@ function calcAll() {
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
   if (donutChart) { donutChart.options.plugins.legend.labels.color = textMuted(); donutChart.update(); }
 });
+
+// Suchvolumen-Chart — nach Helper-Definitionen initialisieren
+initSVChart();
 </script>
 </body>
 </html>
