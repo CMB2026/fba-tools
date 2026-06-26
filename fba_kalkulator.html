@@ -86,8 +86,6 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 .ampel-text h3{font-size:14px;font-weight:500;margin:0 0 3px}
 .ampel-text p{font-size:12px;color:var(--text-secondary);margin:0;line-height:1.5}
 
-.ek-suggest{background:var(--accent-bg);border:.5px solid var(--accent-border);border-radius:var(--radius);padding:.65rem .9rem;font-size:12px;color:var(--accent);margin-bottom:.875rem;display:none;line-height:1.5}
-.ek-suggest strong{font-weight:500}
 
 .result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:.875rem}
 .metric{background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);padding:.65rem .875rem;display:flex;flex-direction:column;gap:2px}
@@ -98,10 +96,27 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 /* Chart area */
 .chart-card{background:var(--surface);border-radius:10px;border:.5px solid var(--border);padding:1rem 1.25rem;margin-bottom:.875rem}
 .chart-card-title{font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:12px}
-.chart-donut-wrap{position:relative;height:200px;display:flex;align-items:center;justify-content:center}
-.chart-donut-center{position:absolute;text-align:center;pointer-events:none}
-.chart-donut-center .cdc-val{font-size:22px;font-weight:600}
-.chart-donut-center .cdc-label{font-size:10px;color:var(--text-muted)}
+.chart-donut-wrap{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:center;min-height:200px}
+.donut-canvas-wrap{position:relative;width:200px;height:200px;flex-shrink:0}
+.donut-canvas-wrap canvas{width:200px!important;height:200px!important}
+.chart-donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;width:80px}
+.chart-donut-center .cdc-val{font-size:20px;font-weight:600;line-height:1.1}
+.chart-donut-center .cdc-label{font-size:9px;color:var(--text-muted);margin-top:1px}
+.donut-legend{display:flex;flex-direction:column;gap:5px}
+.dl-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text-secondary)}
+.dl-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.dl-label{flex:1}
+.dl-val{font-weight:500;color:var(--text-primary);font-size:11px}
+.dl-pct{font-size:10px;color:var(--text-muted);margin-left:3px}
+
+/* Preisfindung card */
+.pf-card{background:var(--surface);border-radius:10px;border:.5px solid var(--border);padding:.875rem 1.25rem;margin-bottom:.875rem;display:grid;grid-template-columns:1fr auto 1fr;gap:.875rem;align-items:center}
+.pf-half{display:flex;align-items:flex-start;gap:10px}
+.pf-icon{width:34px;height:34px;border-radius:8px;background:var(--accent-bg);border:.5px solid var(--accent-border);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.pf-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;font-weight:500;margin-bottom:2px}
+.pf-val{font-size:21px;font-weight:600;line-height:1.1}
+.pf-sub{font-size:11px;color:var(--text-muted);margin-top:3px;line-height:1.4}
+.pf-sep{width:.5px;background:var(--border);min-height:48px;align-self:stretch}
 
 .monthly-block{background:var(--surface);border-radius:10px;border:.5px solid var(--border);padding:.875rem 1.125rem;margin-bottom:.875rem}
 .monthly-block .mb-title{font-size:10px;font-weight:500;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:9px}
@@ -333,8 +348,6 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
         </div>
       </div>
 
-      <div class="ek-suggest" id="ek_suggest"></div>
-
       <div class="result-grid">
         <div class="metric"><span class="mlabel">VK netto</span><span class="mval" id="r_vk_net"></span></div>
         <div class="metric"><span class="mlabel">Kosten/Stück</span><span class="mval" id="r_total_cost"></span></div>
@@ -342,15 +355,39 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
         <div class="metric"><span class="mlabel">Nettomarge</span><span class="mval" id="r_margin_pct"></span><span class="msub" id="r_margin_sub"></span></div>
       </div>
 
+      <!-- Preisfindung -->
+      <div class="pf-card" id="pf_card">
+        <div class="pf-half">
+          <div class="pf-icon"><i class="ti ti-tag"></i></div>
+          <div>
+            <div class="pf-label">Notwendiger Min.-VK</div>
+            <div class="pf-val" id="pf_minvk">—</div>
+            <div class="pf-sub" id="pf_minvk_sub"></div>
+          </div>
+        </div>
+        <div class="pf-sep"></div>
+        <div class="pf-half">
+          <div class="pf-icon"><i class="ti ti-coins"></i></div>
+          <div>
+            <div class="pf-label">Max. EK für Zielmarge</div>
+            <div class="pf-val" id="pf_maxek">—</div>
+            <div class="pf-sub" id="pf_maxek_sub"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Donut chart -->
       <div class="chart-card">
         <div class="chart-card-title">Kostenaufschlüsselung — Anteil am VK-Preis</div>
         <div class="chart-donut-wrap">
-          <canvas id="donutChart" style="max-width:200px;max-height:200px"></canvas>
-          <div class="chart-donut-center">
-            <div class="cdc-val" id="donut_center_val"></div>
-            <div class="cdc-label">Nettomarge</div>
+          <div class="donut-canvas-wrap">
+            <canvas id="donutChart"></canvas>
+            <div class="chart-donut-center">
+              <div class="cdc-val" id="donut_center_val"></div>
+              <div class="cdc-label">Nettomarge</div>
+            </div>
           </div>
+          <div class="donut-legend" id="donut_legend"></div>
         </div>
       </div>
 
@@ -510,6 +547,53 @@ function switchTab(name, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   $('tab-' + name).classList.add('active');
   btn.classList.add('active');
+  if (name === 'szenarien') syncKalkToSzenarien();
+}
+
+function syncKalkToSzenarien() {
+  // Basiswerte aus Kalkulator übernehmen
+  const map = [
+    ['s_ek',     'ek'],
+    ['s_ship',   'shipping_total'],
+    ['s_qty',    'qty'],
+    ['s_cust',   'customs_pct'],
+    ['s_prov',   'prov_pct'],
+    ['s_ppc',    'ppc_pct'],
+    ['s_mwst',   'mwst_pct'],
+    ['s_ret',    'return_pct'],
+    ['s_uns',    'return_unsellable_pct'],
+    ['s_target', 'target_margin'],
+    ['s_sales',  'sales_month'],
+  ];
+  map.forEach(([dst, src]) => {
+    const v = $(src)?.value;
+    if (v !== undefined && v !== '') $(dst).value = v;
+  });
+
+  // FBA-Gebühr: bei "custom" den manuellen Wert nehmen, sonst Dropdown-Wert
+  const fbaClass = $('fba_class').value;
+  const fbaVal   = fbaClass === 'custom' ? gv('fba_manual', 2.70) : parseFloat(fbaClass);
+  $('s_fba').value = fbaVal.toFixed(2);
+
+  // VK-Preise: aktuell −5, aktuell, aktuell +5 (nur wenn Kalkulator-VK vorhanden)
+  const vk = gv('vk');
+  if (vk > 0) {
+    const step = vk >= 80 ? 10 : vk >= 40 ? 5 : 3;
+    // Dezimalstelle beibehalten (.99 / .90 / .95 / glatt)
+    const dec = Math.round((vk % 1) * 100);
+    const ending = dec >= 97 ? 0.99 : dec >= 88 ? 0.90 : dec >= 93 ? 0.95 : (dec === 0 ? 0.00 : vk % 1);
+
+    const lower  = Math.max(Math.floor(vk - step) + ending, 0.01);
+    const middle = vk;
+    const higher = Math.floor(vk + step) + ending;
+
+    // Nur setzen wenn Szenarien-Feld noch leer (nicht überschreiben wenn User schon was eingegeben hat)
+    if (!$('vk_0').value) { $('vk_0').value = lower.toFixed(2);  $('vk_name_0').value = ''; }
+    if (!$('vk_1').value) { $('vk_1').value = middle.toFixed(2); $('vk_name_1').value = ''; }
+    if (!$('vk_2').value) { $('vk_2').value = higher.toFixed(2); $('vk_name_2').value = ''; }
+  }
+
+  calcAll();
 }
 
 /* ─────────── EXPORT ─────────── */
@@ -553,31 +637,47 @@ let donutChart = null;
 let szMarginChart = null;
 let szProfitChart = null;
 
-const COST_COLORS = ['#185FA5','#5e9b00','#52514e','#BA7517','#898781','#EF9F27','#A32D2D','#c084fc','#1D9E75'];
+const COST_LABELS = ['EK','Versand+Zoll','Provision','FBA-Gebühr','PPC','MwSt','Retourenkosten','Lager','Nettogewinn'];
+const COST_COLORS = ['#185FA5','#5e9b00','#52514e','#BA7517','#6b7280','#EF9F27','#A32D2D','#c084fc','#1D9E75'];
 
 function initDonut() {
   const ctx = $('donutChart').getContext('2d');
   donutChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['EK','Versand+Zoll','Provision','FBA','PPC','MwSt','Retourenkosten','Lager','Nettogewinn'],
-      datasets: [{ data: [], backgroundColor: COST_COLORS, borderWidth: 0, hoverOffset: 4 }]
+      labels: COST_LABELS,
+      datasets: [{ data: [], backgroundColor: COST_COLORS, borderWidth: 0, hoverOffset: 3 }]
     },
     options: {
-      responsive: true, maintainAspectRatio: true, cutout: '68%',
+      responsive: false,
+      maintainAspectRatio: false,
+      cutout: '65%',
       plugins: {
-        legend: { position: 'right', labels: { font: { size: 11 }, color: textMuted(), padding: 10, boxWidth: 12 } },
+        legend: { display: false },
         tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.parsed.toFixed(2) + ' €' } }
       }
     }
   });
 }
 
-function updateDonut(vals) {
+function updateDonut(vals, totalVK) {
   if (!donutChart) initDonut();
-  donutChart.data.datasets[0].data = vals;
-  donutChart.options.plugins.legend.labels.color = textMuted();
+  donutChart.data.datasets[0].data = vals.map(v => Math.max(v, 0));
   donutChart.update();
+
+  // Custom HTML legend
+  const legend = $('donut_legend');
+  legend.innerHTML = COST_LABELS.map((label, i) => {
+    const v = vals[i];
+    if (v <= 0.001) return '';
+    const pct = totalVK > 0 ? ((v / totalVK) * 100).toFixed(1) : '0';
+    return `<div class="dl-item">
+      <div class="dl-dot" style="background:${COST_COLORS[i]}"></div>
+      <span class="dl-label">${label}</span>
+      <span class="dl-val">${fmt(v)}</span>
+      <span class="dl-pct">${pct}%</span>
+    </div>`;
+  }).join('');
 }
 
 function initSzCharts() {
@@ -611,6 +711,84 @@ function initSzCharts() {
 
 function ampelColor(m, t) {
   return m >= t ? '#1D9E75' : m >= 0 ? '#EF9F27' : '#E24B4A';
+}
+
+/* ─────────── PREISFINDUNG ─────────── */
+/*
+ * Notwendiger Min.-VK (brutto) für Zielmarge t, bei gegebenem EK:
+ *
+ * Kosten = vk*(provPct + ppcPct*(1+returnPct) + m/(1+m)) + fixedB
+ * fixedB = ek*(1 + customsPct + returnPct*unsellPct/100) + ship + custFixed + fba*(1+returnPct) + storage
+ *
+ * Bedingung: netProfit / vkNetto >= t
+ * => vk*(1-A) - fixedB >= vkNetto * t = vk/(1+m) * t
+ * => vk * ((1-A) - t/(1+m)) >= fixedB
+ * => vk_min = fixedB / ((1-A) - t/(1+m))
+ */
+function calcMinVK(ek, shippingPerUnit, customsPct, customsFixed, fbaFee,
+                   provPct, ppcPct, mwstPct, returnPct, unsellablePct, storageCost, t) {
+  const m = mwstPct;
+  const A = provPct + ppcPct * (1 + returnPct) + m / (1 + m);
+  const B = ek * (1 + customsPct + returnPct * unsellablePct / 100)
+          + shippingPerUnit + customsFixed + fbaFee * (1 + returnPct) + storageCost;
+  const denom = (1 - A) - t / (1 + m);
+  if (denom <= 0) return Infinity;
+  return B / denom;
+}
+
+/*
+ * Max. EK (netto) für Zielmarge t, bei gegebenem VK:
+ *
+ * ek_max = (vk - fixedCostsExcEK - vkNetto*t) / (1 + customsPct + returnPct*unsellPct/100)
+ * fixedCostsExcEK = prov + fba + ppc + mwst + returnCost_vkPart + ship + custFixed + storage
+ */
+function calcMaxEK(vk, shippingPerUnit, customsPct, customsFixed, fbaFee,
+                   provPct, ppcPct, mwstPct, returnPct, unsellablePct, storageCost, t) {
+  const m = mwstPct;
+  const vkNetto = vk / (1 + m);
+  const fixedExcEK = vk * provPct + fbaFee + vk * ppcPct + vk * m / (1 + m)
+                   + returnPct * (vk * ppcPct + fbaFee)
+                   + shippingPerUnit + customsFixed + storageCost;
+  const ekDivisor = 1 + customsPct + returnPct * unsellablePct / 100;
+  return (vk - fixedExcEK - vkNetto * t) / ekDivisor;
+}
+
+function renderPreisfindung(minVK, maxEK, currentVK, currentEK, targetPct) {
+  // Min VK
+  const minVKel = $('pf_minvk'), minVKsub = $('pf_minvk_sub');
+  if (minVK === Infinity || minVK <= 0) {
+    minVKel.textContent = 'Nicht erreichbar';
+    minVKel.style.color = 'var(--danger)';
+    minVKsub.textContent = 'Kosten > möglicher Erlös';
+  } else {
+    minVKel.textContent = fmt(minVK);
+    const diff = currentVK - minVK;
+    if (diff >= 0) {
+      minVKel.style.color = 'var(--success)';
+      minVKsub.textContent = 'Aktueller VK liegt ' + fmt(diff) + ' darüber ✓';
+    } else {
+      minVKel.style.color = 'var(--warning)';
+      minVKsub.textContent = 'Aktueller VK fehlen ' + fmt(Math.abs(diff));
+    }
+  }
+
+  // Max EK
+  const maxEKel = $('pf_maxek'), maxEKsub = $('pf_maxek_sub');
+  if (maxEK <= 0) {
+    maxEKel.textContent = 'Nicht erreichbar';
+    maxEKel.style.color = 'var(--danger)';
+    maxEKsub.textContent = 'VK zu niedrig für Zielmarge';
+  } else {
+    maxEKel.textContent = fmt(maxEK);
+    const diff = maxEK - currentEK;
+    if (diff >= 0) {
+      maxEKel.style.color = 'var(--success)';
+      maxEKsub.textContent = 'Aktueller EK liegt ' + fmt(diff) + ' darunter ✓';
+    } else {
+      maxEKel.style.color = 'var(--warning)';
+      maxEKsub.textContent = 'EK ' + fmt(Math.abs(diff)) + ' zu hoch → verhandeln';
+    }
+  }
 }
 
 /* ─────────── TAB 1: SINGLE CALC ─────────── */
@@ -683,12 +861,18 @@ function calc() {
   mEl.style.color = ampelColor(marginPct, targetPct);
   $('r_margin_sub').textContent = 'Ziel: ' + fmtP(targetPct);
 
+  // Preisfindung
+  const minVK = calcMinVK(ek, shippingPerUnit, customsPct, customsFixed, fbaFee,
+                           provPct, ppcPct, mwstPct, returnPct, unsellablePct, storageCost, targetMarginPct);
+  const maxEK = calcMaxEK(vk, shippingPerUnit, customsPct, customsFixed, fbaFee,
+                           provPct, ppcPct, mwstPct, returnPct, unsellablePct, storageCost, targetMarginPct);
+  renderPreisfindung(minVK, maxEK, vk, ek, targetPct);
+
   // Donut
   const profitSegment = Math.max(netProfit, 0);
   const donutVals = [ek, shippingPerUnit + customsPerUnit, prov, fbaFee, ppc, mwst,
-                     returnCost + unsellableCost, storageCost, profitSegment]
-    .map(v => Math.max(v, 0));
-  updateDonut(donutVals);
+                     returnCost + unsellableCost, storageCost, profitSegment];
+  updateDonut(donutVals, vk);
   $('donut_center_val').textContent = fmtP(marginPct);
   $('donut_center_val').style.color = ampelColor(marginPct, targetPct);
 
@@ -751,29 +935,11 @@ function calc() {
     dot.innerHTML = '<i class="ti ti-alert-triangle" style="color:#fff;font-size:19px"></i>';
     title.textContent = 'Zu niedrige Marge — EK-Verhandlung empfohlen';
     msg.textContent   = 'Nettomarge ' + fmtP(marginPct) + ' liegt ' + fmtP(targetPct - marginPct) + ' unter Ziel.';
-    showEkSuggest(vkNet, prov, fbaFee, ppc, shippingPerUnit, customsFixed, customsPct, returnCost, unsellableCost, storageCost, targetMarginPct);
   } else {
     dot.style.background = '#E24B4A';
     dot.innerHTML = '<i class="ti ti-x" style="color:#fff;font-size:19px"></i>';
     title.textContent = 'Verlustgeschäft — Produkt nicht viable';
-    msg.textContent   = 'Nettomarge ' + fmtP(marginPct) + '. VK erhöhen oder Kosten senken.';
-    showEkSuggest(vkNet, prov, fbaFee, ppc, shippingPerUnit, customsFixed, customsPct, returnCost, unsellableCost, storageCost, targetMarginPct);
-  }
-}
-
-function showEkSuggest(vkNet, prov, fbaFee, ppc, shippingPerUnit, customsFixed, customsPct, returnCost, unsellableCost, storageCost, targetMarginPct) {
-  const targetProfit = vkNet * targetMarginPct;
-  const ekMax = (targetProfit - prov - fbaFee - ppc - shippingPerUnit - customsFixed - returnCost - unsellableCost - storageCost) / (1 + customsPct);
-  const el = $('ek_suggest');
-  if (ekMax > 0) {
-    el.style.display = 'block';
-    el.innerHTML = '<i class="ti ti-bulb" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>'
-      + '<strong>Max. Ziel-EK für ' + fmtP(targetMarginPct * 100) + ' Nettomarge:</strong> ' + fmt(ekMax)
-      + ' — für Lieferantenverhandlung nutzen.';
-  } else {
-    el.style.display = 'block';
-    el.innerHTML = '<i class="ti ti-alert-circle" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>'
-      + '<strong>Kein profitabler EK erreichbar</strong> bei diesem VK. VK-Preis prüfen.';
+    msg.textContent   = 'Nettomarge ' + fmtP(marginPct) + '. Notwendiger VK und Max. EK siehe unten.';
   }
 }
 
