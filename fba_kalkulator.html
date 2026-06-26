@@ -49,6 +49,30 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 .export-btn i{font-size:14px}
 .badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--accent-bg);color:var(--accent);border:.5px solid var(--accent-border);font-weight:500;white-space:nowrap}
 
+/* ── JSON IMPORT MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:12px;border:.5px solid var(--border-strong);width:min(560px,95vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-head{padding:.875rem 1.125rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:10px}
+.modal-head h3{flex:1;font-size:14px;font-weight:500}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;line-height:1;padding:2px 4px}
+.modal-body{padding:1rem 1.125rem;overflow-y:auto;display:flex;flex-direction:column;gap:.875rem}
+.modal-ta{width:100%;height:180px;padding:8px 10px;border:.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-muted);color:var(--text-primary);font-size:12px;font-family:monospace;resize:vertical;line-height:1.5}
+.modal-ta:focus{outline:none;border-color:var(--accent)}
+.modal-map{background:var(--surface-muted);border-radius:8px;border:.5px solid var(--border);overflow:hidden;display:none}
+.modal-map-head{padding:.5rem .875rem;font-size:10px;font-weight:500;letter-spacing:.07em;color:var(--text-muted);text-transform:uppercase;border-bottom:.5px solid var(--border)}
+.map-row{display:grid;grid-template-columns:1fr 1fr auto;align-items:center;gap:8px;padding:.35rem .875rem;border-bottom:.5px solid var(--border);font-size:12px}
+.map-row:last-child{border-bottom:none}
+.map-field{color:var(--text-secondary)}
+.map-val{color:var(--text-primary);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.map-ok{color:var(--success);font-size:14px}
+.map-skip{color:var(--text-muted);font-size:14px}
+.modal-foot{padding:.875rem 1.125rem;border-top:.5px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.btn-primary{padding:6px 16px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+.btn-primary:hover{opacity:.88}
+.btn-secondary{padding:6px 14px;border-radius:7px;background:var(--surface-muted);color:var(--text-secondary);border:.5px solid var(--border-strong);font-size:13px;cursor:pointer;font-family:inherit}
+.import-hint{font-size:11px;color:var(--text-muted);line-height:1.5}
+
 /* ── TAB PANELS ── */
 .tab-panel{display:none}
 .tab-panel.active{display:block}
@@ -371,6 +395,7 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
     <input class="h-product-input" id="produktname" type="text" placeholder="Produktname eingeben…">
   </div>
   <div class="h-right">
+    <button class="export-btn" onclick="openImportModal()"><i class="ti ti-upload"></i> JSON Import</button>
     <button class="export-btn" onclick="doExport()"><i class="ti ti-printer"></i> Export PDF</button>
     <span class="badge">v1.4</span>
   </div>
@@ -625,21 +650,21 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
       <div class="mlink-row">
         <span class="mlink-label">Amazon Hauptsuchbegriff</span>
         <div class="mlink-input-wrap">
-          <input class="sup-input url-input" type="url" placeholder="https://amazon.de/s?k=…" oninput="updateMLink(this)">
+          <input class="sup-input url-input" id="mlink_amazon" type="url" placeholder="https://amazon.de/s?k=…" oninput="updateMLink(this)">
           <a class="sup-link-display" href="#" target="_blank">Link</a>
         </div>
       </div>
       <div class="mlink-row">
         <span class="mlink-label">Niedrigpreisiger Konkurrent</span>
         <div class="mlink-input-wrap">
-          <input class="sup-input url-input" type="url" placeholder="https://amazon.de/dp/…" oninput="updateMLink(this)">
+          <input class="sup-input url-input" id="mlink_low" type="url" placeholder="https://amazon.de/dp/…" oninput="updateMLink(this)">
           <a class="sup-link-display" href="#" target="_blank">Link</a>
         </div>
       </div>
       <div class="mlink-row">
         <span class="mlink-label">Höherpreisiger Konkurrent</span>
         <div class="mlink-input-wrap">
-          <input class="sup-input url-input" type="url" placeholder="https://amazon.de/dp/…" oninput="updateMLink(this)">
+          <input class="sup-input url-input" id="mlink_high" type="url" placeholder="https://amazon.de/dp/…" oninput="updateMLink(this)">
           <a class="sup-link-display" href="#" target="_blank">Link</a>
         </div>
       </div>
@@ -766,6 +791,30 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
 </div>
 </div><!-- /tab-szenarien -->
 
+<!-- ── JSON IMPORT MODAL ── -->
+<div class="modal-overlay" id="import_modal" onclick="if(event.target===this)closeImportModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <i class="ti ti-upload" style="font-size:16px;color:var(--accent)"></i>
+      <h3>Accio JSON Import</h3>
+      <button class="modal-close" onclick="closeImportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="import-hint">Accio-Export als JSON kopieren und hier einfügen. Felder werden automatisch gemappt.</div>
+      <textarea class="modal-ta" id="import_json_ta" placeholder='{"title":"Produkt","price":24.99,"cost":8.00,...}' oninput="previewImport()"></textarea>
+      <div class="modal-map" id="import_map">
+        <div class="modal-map-head">Erkannte Felder</div>
+        <div id="import_map_rows"></div>
+      </div>
+      <div id="import_error" style="font-size:12px;color:var(--danger);display:none"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeImportModal()">Abbrechen</button>
+      <button class="btn-primary" id="import_apply_btn" onclick="applyImport()" disabled>Felder übernehmen</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ─────────── SUCHVOLUMEN CHART ─────────── */
 const SV_MONTHS = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
@@ -838,14 +887,14 @@ function updateSVChart() {
     const el = document.createElement('div');
     el.className = 'mseg-item';
     el.innerHTML =
-      '<input class="mseg-name-input" type="text" value="' + d.name + '" placeholder="Segment ' + (i+1) + '">' +
+      '<input class="mseg-name-input" id="seg_name_' + i + '" type="text" value="' + d.name + '" placeholder="Segment ' + (i+1) + '">' +
 
       '<div class="mseg-row">' +
         '<div class="mseg-row-label">Preisspanne</div>' +
         '<div class="mseg-price-row">' +
-          '<div class="mseg-price-field"><label>von</label><input type="number" class="mseg-reviews-input" min="0" step="0.5" value="' + d.prMin + '" placeholder="0"><span class="mseg-unit">€</span></div>' +
+          '<div class="mseg-price-field"><label>von</label><input type="number" id="seg_pmin_' + i + '" class="mseg-reviews-input" min="0" step="0.5" value="' + d.prMin + '" placeholder="0"><span class="mseg-unit">€</span></div>' +
           '<span class="mseg-dash">–</span>' +
-          '<div class="mseg-price-field"><label>bis</label><input type="number" class="mseg-reviews-input" min="0" step="0.5" value="' + d.prMax + '" placeholder="0"><span class="mseg-unit">€</span></div>' +
+          '<div class="mseg-price-field"><label>bis</label><input type="number" id="seg_pmax_' + i + '" class="mseg-reviews-input" min="0" step="0.5" value="' + d.prMax + '" placeholder="0"><span class="mseg-unit">€</span></div>' +
         '</div>' +
       '</div>' +
 
@@ -859,7 +908,7 @@ function updateSVChart() {
 
       '<div class="mseg-row">' +
         '<div class="mseg-row-label">Ø Anzahl Bewertungen</div>' +
-        '<input class="mseg-reviews-input" type="number" min="0" step="10" value="' + d.reviews + '" placeholder="z.B. 500">' +
+        '<input class="mseg-reviews-input" id="seg_reviews_' + i + '" type="number" min="0" step="10" value="' + d.reviews + '" placeholder="z.B. 500">' +
       '</div>';
     grid.appendChild(el);
   });
@@ -878,12 +927,12 @@ function updateSeg(i) {
     tr.setAttribute('data-supplier', 'Lieferant ' + (i + 1));
     tr.innerHTML =
       '<td class="td-num">' + (i + 1) + '</td>' +
-      '<td class="td-name" data-label="Lieferant"><input class="sup-input" type="text" placeholder="Lieferant ' + (i + 1) + '"></td>' +
+      '<td class="td-name" data-label="Lieferant"><input class="sup-input" id="sup_name_' + i + '" type="text" placeholder="Lieferant ' + (i + 1) + '"></td>' +
       '<td class="td-url" data-label="Alibaba-Link">' +
-        '<input class="sup-input url-input" type="url" placeholder="https://alibaba.com/…" oninput="updateSupLink(this)">' +
+        '<input class="sup-input url-input" id="sup_url_' + i + '" type="url" placeholder="https://alibaba.com/…" oninput="updateSupLink(this)">' +
         '<a class="sup-link-display" href="#" target="_blank">Link</a>' +
       '</td>' +
-      '<td class="td-comment" data-label="Kommentar"><input class="sup-input" type="text" placeholder="Kommentar…"></td>';
+      '<td class="td-comment" data-label="Kommentar"><input class="sup-input" id="sup_comment_' + i + '" type="text" placeholder="Kommentar…"></td>';
     tbody.appendChild(tr);
   }
 })();
@@ -933,6 +982,235 @@ function updateSupLink(inp) {
     a.href = '#';
     a.textContent = 'Link';
   }
+}
+
+/* ─────────── JSON IMPORT ─────────── */
+// Alle Felder: Accio / Helium10 / Jungle Scout / Sellerboard u.a. → Kalkulator-IDs
+// pct:true = Wert wird ggf. als Dezimal erkannt (0.15 → 15)
+const IMPORT_MAP = [
+  // ── Produkt & Markt ──
+  { id:'produktname',           label:'Produktname',               keys:['title','name','product_name','productName','product_title','asin_title','listing_title'] },
+  { id:'sv_keyword',            label:'Haupt-Suchbegriff',         keys:['keyword','main_keyword','mainKeyword','search_term','searchTerm','primary_keyword','root_keyword','seed_keyword'] },
+  { id:'sv_total_rev',          label:'Gesamtumsatz/Monat (€)',    keys:['monthly_revenue','monthlyRevenue','total_revenue','totalRevenue','market_revenue','niche_revenue','category_revenue','estimated_revenue','market_size'] },
+  { id:'sv_avg_rev',            label:'Ø Umsatz/Seller (€)',       keys:['avg_revenue','avgRevenue','average_revenue','revenue_per_seller','avg_seller_revenue','mean_revenue','median_revenue'] },
+  // ── Kalkulation ──
+  { id:'vk',                    label:'VK brutto (€)',              keys:['price','selling_price','sellingPrice','sale_price','retail_price','amazon_price','avg_price','average_price','buy_box_price','buyBoxPrice','listing_price'] },
+  { id:'ek',                    label:'EK netto (€)',               keys:['cost','purchase_price','purchasePrice','unit_cost','cogs','buy_price','sourcing_price','supplier_price','manufacturing_cost','product_cost'] },
+  { id:'shipping_total',        label:'Versand gesamt (€)',         keys:['shipping_cost','shippingCost','freight_cost','total_shipping','shipping_total','import_cost','logistics_cost','freight_total'] },
+  { id:'qty',                   label:'Stückzahl Sendung',          keys:['quantity','qty','order_quantity','moq','units','batch_size','shipment_qty','units_per_order'] },
+  { id:'customs_pct',           label:'Zoll % auf EK',             keys:['customs_rate','customsRate','duty_rate','import_duty','tariff','customs_pct','duty_pct','import_tax'], pct:true },
+  { id:'customs_fixed',         label:'Zoll Festbetrag/Stück (€)', keys:['customs_fixed','customsFixed','duty_fixed','duty_per_unit','fixed_duty'] },
+  { id:'fba_manual',            label:'FBA-Gebühr manuell (€)',    keys:['fba_fee','fbaFee','fulfillment_fee','amazon_fba_fee','fba_cost','pick_pack_fee','fulfillment_cost'] },
+  { id:'sales_month',           label:'Verkäufe/Monat',            keys:['monthly_sales','monthlySales','estimated_sales','sales_volume','units_sold','avg_monthly_sales','monthly_units','sales_estimate','unit_sales'] },
+  // ── Lagerkosten ──
+  { id:'storage_monthly',       label:'Lagerkosten/Monat (€)',     keys:['storage_cost','storageCost','warehouse_cost','monthly_storage','storage_fees','inventory_storage'] },
+  { id:'storage_units',         label:'Ø Lagerbestand (Stück)',    keys:['storage_units','storageUnits','avg_inventory','average_inventory','inventory_level','avg_stock'] },
+  // ── Parameter ──
+  { id:'prov_pct',              label:'Amazon-Provision %',        keys:['commission','commission_rate','referral_fee','referral_pct','amazon_fee_pct','referral_fee_rate','amazon_commission'], pct:true },
+  { id:'ppc_pct',               label:'PPC-Kosten %',              keys:['ppc','ppc_rate','advertising_rate','tacos','ad_spend_pct','acos','ppc_pct','advertising_pct','ad_cost_pct'], pct:true },
+  { id:'mwst_pct',              label:'MwSt. %',                   keys:['vat','vat_rate','tax_rate','mwst','tax_pct','sales_tax','gst'], pct:true },
+  { id:'return_pct',            label:'Retourenquote %',           keys:['return_rate','returnRate','refund_rate','returns_pct','return_pct','chargeback_rate'], pct:true },
+  { id:'return_unsellable_pct', label:'Unverkäufl. Retouren %',    keys:['unsellable_rate','unsellableRate','damaged_return_rate','loss_rate','waste_rate'], pct:true },
+  { id:'target_margin',         label:'Zielmarge %',               keys:['target_margin','targetMargin','margin_target','desired_margin','profit_margin_target','min_margin'], pct:true },
+  // ── Freitextfelder ──
+  { id:'markt_notiz',           label:'Markteinschätzung',         keys:['market_notes','marketNotes','notes','description','analysis','market_analysis','remarks','comment','summary'] },
+  // ── Markt-Links ──
+  { id:'mlink_amazon',          label:'Link Amazon Hauptsuchbegriff', keys:['amazon_search_url','amazonSearchUrl','amazon_url','search_url','amazon_link','keyword_url'] },
+  { id:'mlink_low',             label:'Link Niedrigpreis-Konkurrent', keys:['competitor_low_url','competitorLowUrl','low_competitor_url','low_price_competitor','competitor_cheap_url'] },
+  { id:'mlink_high',            label:'Link Höherpreis-Konkurrent',   keys:['competitor_high_url','competitorHighUrl','high_competitor_url','high_price_competitor','competitor_premium_url'] },
+];
+
+// Suchvolumen Monate — viele mögliche Key-Varianten
+const SV_MONTH_KEYS = [
+  ['jan','january','jan_volume','month_1','1'],
+  ['feb','february','feb_volume','month_2','2'],
+  ['mar','march','mär','maerz','mar_volume','month_3','3'],
+  ['apr','april','apr_volume','month_4','4'],
+  ['may','mai','may_volume','month_5','5'],
+  ['jun','june','juni','jun_volume','month_6','6'],
+  ['jul','july','juli','jul_volume','month_7','7'],
+  ['aug','august','aug_volume','month_8','8'],
+  ['sep','september','sep_volume','month_9','9'],
+  ['oct','okt','october','oktober','oct_volume','month_10','10'],
+  ['nov','november','nov_volume','month_11','11'],
+  ['dec','dez','december','dezember','dec_volume','month_12','12']
+];
+
+let _importData = null;
+
+function openImportModal() {
+  document.getElementById('import_modal').classList.add('open');
+  document.getElementById('import_json_ta').focus();
+}
+function closeImportModal() {
+  document.getElementById('import_modal').classList.remove('open');
+  _importData = null;
+}
+
+function findVal(obj, keys) {
+  const flat = flattenObj(obj);
+  for (const k of keys) {
+    for (const fk of Object.keys(flat)) {
+      if (fk.toLowerCase().replace(/[-_\s]/g,'') === k.toLowerCase().replace(/[-_\s]/g,'')) {
+        const v = flat[fk];
+        if (v !== null && v !== undefined && v !== '') return v;
+      }
+    }
+  }
+  return null;
+}
+
+function flattenObj(obj, prefix, res) {
+  prefix = prefix || '';
+  res = res || {};
+  for (const k in obj) {
+    const val = obj[k];
+    const key = prefix ? prefix + '_' + k : k;
+    if (val && typeof val === 'object' && !Array.isArray(val)) flattenObj(val, key, res);
+    else res[key] = val;
+  }
+  return res;
+}
+
+function previewImport() {
+  const ta = document.getElementById('import_json_ta').value.trim();
+  const errEl = document.getElementById('import_error');
+  const mapEl = document.getElementById('import_map');
+  const rowsEl = document.getElementById('import_map_rows');
+  const btn = document.getElementById('import_apply_btn');
+  errEl.style.display = 'none'; mapEl.style.display = 'none'; btn.disabled = true; _importData = null;
+  if (!ta) return;
+  let obj;
+  try { obj = JSON.parse(ta); } catch(e) { errEl.textContent = 'Kein gültiges JSON: ' + e.message; errEl.style.display = 'block'; return; }
+  if (Array.isArray(obj)) obj = obj[0];
+  _importData = obj;
+  const rows = [];
+  IMPORT_MAP.forEach(m => {
+    let v = findVal(obj, m.keys);
+    if (v === null) return;
+    if (m.pct && typeof v === 'number' && v > 0 && v <= 1) v = +(v * 100).toFixed(2);
+    rows.push({ label: m.label, val: String(v).substring(0, 40) });
+  });
+  // Suchvolumen Monate
+  let svFound = 0;
+  const svObj = findVal(obj, ['search_volume','searchVolume','monthly_search_volume','volume_by_month','monthly_volume','keyword_volume','sv_monthly','search_volume_trend']);
+  if (svObj && typeof svObj === 'object' && !Array.isArray(svObj)) svFound = Object.keys(svObj).length;
+  const svArr = findVal(obj, ['sv_array','volume_array','monthly_volumes','volumes']);
+  if (Array.isArray(svArr) && svArr.length >= 12) svFound = 12;
+  // Segmente
+  const segArr = findVal(obj, ['market_segments','marketSegments','segments','price_segments','segmente']);
+  if (Array.isArray(segArr) && segArr.length > 0) rows.push({ label: 'Markt-Segmentierung', val: segArr.length + ' Segmente' });
+  // Lieferanten
+  const supArr = findVal(obj, ['suppliers','lieferanten','potential_suppliers','potentialSuppliers','supplier_list']);
+  if (Array.isArray(supArr) && supArr.length > 0) rows.push({ label: 'Lieferanten', val: supArr.length + ' Einträge' });
+
+  if (rows.length === 0 && svFound === 0) { errEl.textContent = 'Keine bekannten Felder gefunden. Accio-JSON prüfen.'; errEl.style.display = 'block'; return; }
+  rowsEl.innerHTML = rows.map(r =>
+    '<div class="map-row"><span class="map-field">' + r.label + '</span><span class="map-val">' + String(r.val).substring(0,40) + '</span><span class="map-ok">✓</span></div>'
+  ).join('') + (svFound ? '<div class="map-row"><span class="map-field">Suchvolumen Monate</span><span class="map-val">' + svFound + ' Monate</span><span class="map-ok">✓</span></div>' : '');
+  mapEl.style.display = 'block';
+  btn.disabled = rows.length === 0 && !svFound;
+}
+
+function applyImport() {
+  if (!_importData) return;
+  const obj = _importData;
+  let storageSet = false;
+
+  IMPORT_MAP.forEach(m => {
+    let v = findVal(obj, m.keys);
+    if (v === null) return;
+    const el = document.getElementById(m.id);
+    if (!el) return;
+    // Prozentwerte: falls als Dezimal (z.B. 0.15 statt 15)
+    if (m.pct && typeof v === 'number' && v > 0 && v <= 1) v = v * 100;
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.value = typeof v === 'number' ? parseFloat(v.toFixed(4)) : v;
+      el.dispatchEvent(new Event('input'));
+    } else if (el.tagName === 'SELECT') {
+      el.value = v;
+      el.dispatchEvent(new Event('change'));
+    }
+    if (m.id === 'storage_monthly' || m.id === 'storage_units') storageSet = true;
+  });
+
+  // Storage-Toggle aktivieren falls Lagerkosten importiert
+  if (storageSet) {
+    const sec = document.getElementById('storage_section');
+    const btn = document.getElementById('storage_toggle_btn');
+    if (sec && !sec.classList.contains('open')) {
+      sec.classList.add('open');
+      if (btn) btn.classList.add('on');
+    }
+  }
+
+  // Suchvolumen Monate — verschiedene Strukturen probieren
+  const svSources = ['search_volume','searchVolume','monthly_search_volume','volume_by_month',
+                     'monthly_volume','keyword_volume','sv_monthly','search_volume_trend','monthly_sv'];
+  let svObj = findVal(obj, svSources);
+  // Fallback: direkt Array der Länge 12
+  if (!svObj || typeof svObj !== 'object') {
+    const arr = findVal(obj, ['sv_array','volume_array','monthly_volumes','volumes']);
+    if (Array.isArray(arr) && arr.length >= 12) svObj = Object.fromEntries(arr.map((v,i) => [String(i+1), v]));
+  }
+  if (svObj && typeof svObj === 'object' && !Array.isArray(svObj)) {
+    SV_MONTH_KEYS.forEach((keys, i) => {
+      const v = findVal(svObj, keys);
+      if (v !== null) { const el = document.getElementById('sv_' + i); if (el) el.value = v; }
+    });
+    updateSVChart();
+  }
+
+  // Markt-Segmentierung
+  const segArr = findVal(obj, ['market_segments','marketSegments','segments','price_segments','segmente']);
+  if (Array.isArray(segArr)) {
+    segArr.forEach(function(seg, i) {
+      if (i > 1) return; // nur 2 Segmente
+      const flat = flattenObj(seg);
+      const setField = function(id, keys) {
+        const v = findVal(flat, keys);
+        if (v === null) return;
+        const el = document.getElementById(id);
+        if (el) { el.value = v; el.dispatchEvent(new Event('input')); }
+      };
+      setField('seg_name_' + i,    ['name','segment_name','segmentName','label','titel']);
+      setField('seg_pmin_' + i,    ['price_min','priceMin','min_price','von','from','min']);
+      setField('seg_pmax_' + i,    ['price_max','priceMax','max_price','bis','to','max']);
+      setField('seg_reviews_' + i, ['reviews','review_count','bewertungen','avg_reviews','anzahl_bewertungen']);
+      const starsVal = findVal(flat, ['stars','rating','avg_stars','avg_rating','sterne','ø_sterne']);
+      if (starsVal !== null) {
+        const sEl = document.getElementById('seg_stars_' + i);
+        if (sEl) { sEl.value = starsVal; updateSeg(i); }
+      }
+    });
+  }
+
+  // Potenzielle Lieferanten
+  const supArr = findVal(obj, ['suppliers','lieferanten','potential_suppliers','potentialSuppliers','supplier_list']);
+  if (Array.isArray(supArr)) {
+    supArr.forEach(function(sup, i) {
+      if (i > 4) return; // max 5
+      const flat = flattenObj(sup);
+      const nameEl = document.getElementById('sup_name_' + i);
+      const urlEl  = document.getElementById('sup_url_'  + i);
+      const comEl  = document.getElementById('sup_comment_' + i);
+      const nameV  = findVal(flat, ['name','supplier_name','company','lieferant','firma']);
+      const urlV   = findVal(flat, ['url','link','alibaba_url','website','href','alibaba_link','supplier_url']);
+      const comV   = findVal(flat, ['comment','kommentar','note','anmerkung','remarks','notiz']);
+      if (nameV && nameEl) nameEl.value = nameV;
+      if (urlV  && urlEl)  { urlEl.value = urlV; updateSupLink(urlEl); }
+      if (comV  && comEl)  comEl.value = comV;
+    });
+  }
+
+  // Markt-Links: updateMLink nach Befüllung aufrufen
+  ['mlink_amazon','mlink_low','mlink_high'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el && el.value) updateMLink(el);
+  });
+
+  calcAll();
+  closeImportModal();
 }
 
 /* ─────────── HELPERS ─────────── */
