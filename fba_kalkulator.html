@@ -429,7 +429,7 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
   <div class="h-right">
     <button class="export-btn" onclick="openImportModal()"><i class="ti ti-upload"></i> JSON Import</button>
     <button class="export-btn" onclick="doExport()"><i class="ti ti-printer"></i> Export PDF</button>
-    <span class="badge">v1.4</span>
+    <span class="badge">v1.5</span>
   </div>
 </header>
 
@@ -590,17 +590,17 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
           </div>
           <div class="kapital-sub">Gesamtinvestition</div>
         </div>
-        <div class="kpi-card" id="kpi_roi_card" style="display:none">
+        <div class="kpi-card" id="kpi_roi_card">
           <div class="kpi-label">ROI / Monat</div>
           <div class="kpi-val" id="kpi_roi">—</div>
           <div class="kpi-sub">Kapitalrendite</div>
         </div>
-        <div class="kpi-card" id="kpi_amort_card" style="display:none">
+        <div class="kpi-card" id="kpi_amort_card">
           <div class="kpi-label">Amortisation</div>
           <div class="kpi-val" id="kpi_amort">—</div>
           <div class="kpi-sub">bis Break-Even</div>
         </div>
-        <div class="kpi-card" id="kpi_be_card" style="display:none">
+        <div class="kpi-card" id="kpi_be_card">
           <div class="kpi-label">Break-Even</div>
           <div class="kpi-val" id="kpi_be">—</div>
           <div class="kpi-sub">Stück gesamt</div>
@@ -1359,18 +1359,14 @@ function applyImport() {
 
   calc();
 
-  // KPI-Karten: vorberechnete Werte direkt aus JSON lesen (vor calcAll, damit kein Chart-Fehler blockiert)
+  // KPI-Karten: vorberechnete Werte direkt aus JSON befüllen
   try {
     const kpiRoi   = findVal(obj, ['kpi_roi',   'roi_monat',   'roi_monthly',   'roi']);
     const kpiAmort = findVal(obj, ['kpi_amortisation', 'amortisation', 'amortization', 'payback_months', 'amortisierung']);
     const kpiBe    = findVal(obj, ['kpi_break_even',   'break_even',   'breakeven',    'break_even_units', 'break_even_stueck']);
-    if (kpiRoi !== null || kpiAmort !== null || kpiBe !== null) {
-      document.getElementById('results').style.display     = 'block';
-      document.getElementById('placeholder').style.display = 'none';
-      if (kpiRoi   !== null) { document.getElementById('kpi_roi').textContent   = parseFloat(kpiRoi).toFixed(1)   + ' %';    document.getElementById('kpi_roi_card').style.display   = 'flex'; }
-      if (kpiAmort !== null) { document.getElementById('kpi_amort').textContent = parseFloat(kpiAmort).toFixed(1) + ' Mon.'; document.getElementById('kpi_amort_card').style.display = 'flex'; }
-      if (kpiBe    !== null) { document.getElementById('kpi_be').textContent    = Math.round(parseFloat(kpiBe)).toLocaleString('de-DE') + ' Stk.'; document.getElementById('kpi_be_card').style.display = 'flex'; }
-    }
+    if (kpiRoi   !== null) document.getElementById('kpi_roi').textContent   = parseFloat(kpiRoi).toFixed(1)   + ' %';
+    if (kpiAmort !== null) document.getElementById('kpi_amort').textContent = parseFloat(kpiAmort).toFixed(1) + ' Mon.';
+    if (kpiBe    !== null) document.getElementById('kpi_be').textContent    = Math.round(parseFloat(kpiBe)).toLocaleString('de-DE') + ' Stk.';
   } catch(e) { console.warn('KPI import error:', e); }
 
   try { calcAll(); } catch(e) { console.warn('calcAll error:', e); }
