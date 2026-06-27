@@ -1360,43 +1360,17 @@ function applyImport() {
   calc();
   calcAll();
 
-  // KPI-Karten direkt nach Import setzen (robust, unabhängig von calc()-Timing)
-  (function(){
-    const kapital = parseFloat(document.getElementById('r_kapital').value) || 0;
-    const salesM  = parseFloat(document.getElementById('sales_month').value) || 0;
-    if (kapital <= 0 || salesM <= 0) return;
-    const vk = parseFloat(document.getElementById('vk').value) || 0;
-    const ek = parseFloat(document.getElementById('ek').value) || 0;
-    if (vk <= 0 || ek <= 0) return;
-    const qty    = Math.max(parseFloat(document.getElementById('qty').value) || 1, 1);
-    const fbaEl  = document.getElementById('fba_class');
-    const fbaFee = fbaEl.value === 'custom'
-      ? (parseFloat(document.getElementById('fba_manual').value) || 0)
-      : (parseFloat(fbaEl.value) || 0);
-    const r = computeMargin({
-      ek, vk,
-      shippingPerUnit: (parseFloat(document.getElementById('shipping_total').value) || 0) / qty,
-      customsPct:    (parseFloat(document.getElementById('customs_pct').value)         || 0)  / 100,
-      customsFixed:   parseFloat(document.getElementById('customs_fixed').value)       || 0,
-      fbaFee,
-      provPct:       (parseFloat(document.getElementById('prov_pct').value)            || 15) / 100,
-      ppcPct:        (parseFloat(document.getElementById('ppc_pct').value)             || 10) / 100,
-      mwstPct:       (parseFloat(document.getElementById('mwst_pct').value)            || 19) / 100,
-      returnPct:     (parseFloat(document.getElementById('return_pct').value)          || 8)  / 100,
-      unsellablePct:  parseFloat(document.getElementById('return_unsellable_pct').value) || 0,
-      storageCost: 0
-    });
-    if (r.netProfit <= 0) return;
-    const monthly = r.netProfit * salesM;
+  // KPI-Karten: vorberechnete Werte direkt aus JSON lesen
+  const kpiRoi   = findVal(obj, ['kpi_roi',   'roi_monat',      'roi_monthly',    'roi']);
+  const kpiAmort = findVal(obj, ['kpi_amortisation', 'amortisation', 'amortization', 'payback_months', 'amortisierung']);
+  const kpiBe    = findVal(obj, ['kpi_break_even',   'break_even',   'breakeven',    'break_even_units', 'break_even_stueck']);
+  if (kpiRoi !== null || kpiAmort !== null || kpiBe !== null) {
     document.getElementById('results').style.display     = 'block';
     document.getElementById('placeholder').style.display = 'none';
-    document.getElementById('kpi_roi').textContent       = (monthly / kapital * 100).toFixed(1) + ' %';
-    document.getElementById('kpi_amort').textContent     = (kapital / monthly).toFixed(1) + ' Mon.';
-    document.getElementById('kpi_be').textContent        = Math.ceil(kapital / r.netProfit).toLocaleString('de-DE') + ' Stk.';
-    document.getElementById('kpi_roi_card').style.display   = 'flex';
-    document.getElementById('kpi_amort_card').style.display = 'flex';
-    document.getElementById('kpi_be_card').style.display    = 'flex';
-  })();
+    if (kpiRoi   !== null) { document.getElementById('kpi_roi').textContent   = parseFloat(kpiRoi).toFixed(1)   + ' %';    document.getElementById('kpi_roi_card').style.display   = 'flex'; }
+    if (kpiAmort !== null) { document.getElementById('kpi_amort').textContent = parseFloat(kpiAmort).toFixed(1) + ' Mon.'; document.getElementById('kpi_amort_card').style.display = 'flex'; }
+    if (kpiBe    !== null) { document.getElementById('kpi_be').textContent    = Math.round(parseFloat(kpiBe)).toLocaleString('de-DE') + ' Stk.'; document.getElementById('kpi_be_card').style.display = 'flex'; }
+  }
 
   closeImportModal();
 }
