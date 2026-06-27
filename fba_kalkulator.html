@@ -428,8 +428,9 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
   </div>
   <div class="h-right">
     <button class="export-btn" onclick="openImportModal()"><i class="ti ti-upload"></i> JSON Import</button>
+    <button class="export-btn" onclick="exportJSON()"><i class="ti ti-download"></i> JSON Export</button>
     <button class="export-btn" onclick="doExport()"><i class="ti ti-printer"></i> Export PDF</button>
-    <span class="badge">v1.4</span>
+    <span class="badge">v1.5</span>
   </div>
 </header>
 
@@ -1369,10 +1370,90 @@ function applyImport() {
     }
   }
 
+  // Produktbild aus JSON wiederherstellen
+  const bildData = findVal(obj, ['produktbild','product_image','image','bild']);
+  if (bildData && String(bildData).indexOf('data:') === 0) {
+    document.getElementById('prod_img').src = bildData;
+    document.getElementById('prod_img_empty').style.display  = 'none';
+    document.getElementById('prod_img_filled').style.display = 'block';
+  }
+
   calc();
   calcAll();
 
   closeImportModal();
+}
+
+/* ─────────── JSON EXPORT ─────────── */
+function exportJSON() {
+  const data = {};
+
+  // Alle IMPORT_MAP-Felder — erster Key = kanonischer Exportname
+  IMPORT_MAP.forEach(function(m) {
+    const el = document.getElementById(m.id);
+    if (!el) return;
+    const v = el.value;
+    if (v === '' || v === null || v === undefined) return;
+    const num = parseFloat(v);
+    data[m.keys[0]] = isNaN(num) ? v : num;
+  });
+
+  // FBA-Klasse (Select) + Kategoriename
+  const fbaSel = document.getElementById('fba_class');
+  if (fbaSel) {
+    data.fba_class = fbaSel.value;
+    const opt = fbaSel.options[fbaSel.selectedIndex];
+    if (opt && fbaSel.value !== 'custom') data.fba_category = opt.text.split('≤')[0].trim();
+  }
+
+  // SV-Monate als Array
+  const months = [];
+  for (let i = 0; i < 12; i++) {
+    const el = document.getElementById('sv_' + i);
+    months.push(el ? (parseFloat(el.value) || 0) : 0);
+  }
+  if (months.some(function(v) { return v > 0; })) data.sv_months = months;
+
+  // Marktsegmente — flache Keys
+  [['0','low'],['1','high']].forEach(function(pair) {
+    const idx = pair[0], pfx = pair[1];
+    const name  = (document.getElementById('seg_name_'    + idx) || {}).value || '';
+    const pmin  = (document.getElementById('seg_pmin_'    + idx) || {}).value || '';
+    const pmax  = (document.getElementById('seg_pmax_'    + idx) || {}).value || '';
+    const stars = (document.getElementById('seg_stars_'   + idx) || {}).value || '';
+    const revs  = (document.getElementById('seg_reviews_' + idx) || {}).value || '';
+    if (name)           data['segment_' + pfx + '_name']    = name;
+    if (pmin && pmax)   data['segment_' + pfx + '_price']   = pmin + '-' + pmax + '€';
+    if (stars)          data['segment_' + pfx + '_stars']   = parseFloat(stars);
+    if (revs)           data['segment_' + pfx + '_reviews'] = parseInt(revs);
+  });
+
+  // Lieferanten als Array
+  var sups = [];
+  for (var i = 0; i < 5; i++) {
+    var sName = (document.getElementById('sup_name_'    + i) || {}).value || '';
+    var sUrl  = (document.getElementById('sup_url_'     + i) || {}).value || '';
+    var sCom  = (document.getElementById('sup_comment_' + i) || {}).value || '';
+    if (sName || sUrl) sups.push({ name: sName, url: sUrl, comment: sCom });
+  }
+  if (sups.length) data.lieferanten = sups;
+
+  // Produktbild als Base64
+  var img = document.getElementById('prod_img');
+  if (img && img.src && img.src.indexOf('data:') === 0) data.produktbild = img.src;
+
+  // Download
+  var json = JSON.stringify(data, null, 2);
+  var blob = new Blob([json], { type: 'application/json' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url;
+  var safeName = (data.produktname || 'kalkulation').replace(/[^a-z0-9äöüß\-]/gi, '_');
+  a.download = safeName + '_fba.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /* ─────────── HELPERS ─────────── */
