@@ -1183,6 +1183,9 @@ function previewImport() {
   // Lieferanten
   const supArr = findVal(obj, ['suppliers','lieferanten','potential_suppliers','potentialSuppliers','supplier_list']);
   if (Array.isArray(supArr) && supArr.length > 0) rows.push({ label: 'Lieferanten', val: supArr.length + ' Einträge' });
+  // FBA-Versandklasse
+  const fbaCatPrev = findVal(obj, ['fba_category','fbaCategory','fba_class_name','versandklasse','fba_size','shipping_class']);
+  if (fbaCatPrev) rows.push({ label: 'FBA-Versandklasse', val: String(fbaCatPrev) });
 
   if (rows.length === 0 && svFound === 0) { errEl.textContent = 'Keine bekannten Felder gefunden. Accio-JSON prüfen.'; errEl.style.display = 'block'; return; }
   rowsEl.innerHTML = rows.map(r =>
@@ -1315,6 +1318,25 @@ function applyImport() {
     const el = document.getElementById(id);
     if (el && el.value) updateMLink(el);
   });
+
+  // FBA-Versandklasse: fba_category per Option-Text matchen
+  const fbaCat = findVal(obj, ['fba_category','fbaCategory','fba_class_name','versandklasse','fba_size','shipping_class']);
+  if (fbaCat) {
+    const sel = document.getElementById('fba_class');
+    if (sel) {
+      const search = String(fbaCat).toLowerCase().replace(/\s+/g,' ').trim();
+      let matched = false;
+      for (let i = 0; i < sel.options.length; i++) {
+        const optText = sel.options[i].text.toLowerCase();
+        if (optText.includes(search) || search.includes(sel.options[i].text.split('≤')[0].trim().toLowerCase())) {
+          sel.value = sel.options[i].value;
+          sel.dispatchEvent(new Event('change'));
+          matched = true;
+          break;
+        }
+      }
+    }
+  }
 
   calcAll();
   closeImportModal();
