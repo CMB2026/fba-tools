@@ -105,7 +105,12 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 .sep{height:.5px;background:var(--border);margin:1.1rem 0}
 
 /* Right panel — results */
-.ampel-card{border-radius:10px;border:.5px solid var(--border);padding:1rem 1.25rem;margin-bottom:.875rem;display:flex;align-items:flex-start;gap:12px;background:var(--surface)}
+.ampel-row{display:flex;gap:10px;margin-bottom:.875rem;align-items:stretch}
+.ampel-card{border-radius:10px;border:.5px solid var(--border);padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:12px;background:var(--surface);flex:1}
+.kapital-card{border-radius:10px;border:.5px solid var(--border);padding:1rem 1.25rem;background:var(--surface);display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:130px;flex-shrink:0;text-align:center}
+.kapital-label{font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--text-muted);text-transform:uppercase}
+.kapital-val{font-size:20px;font-weight:700;color:var(--text-primary);letter-spacing:-.01em}
+.kapital-sub{font-size:9px;color:var(--text-muted)}
 .dot{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .ampel-text h3{font-size:14px;font-weight:500;margin:0 0 3px}
 .ampel-text p{font-size:12px;color:var(--text-secondary);margin:0;line-height:1.5}
@@ -562,12 +567,19 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
 
     <div id="results" style="display:none">
 
-      <div class="ampel-card">
-        <div class="dot" id="ampel_dot"></div>
-        <div class="ampel-text">
-          <h3 id="ampel_title"></h3>
-          <p id="ampel_msg"></p>
-          <span id="ampel_monthly" style="display:none;font-size:12px;font-weight:600;margin-top:2px;letter-spacing:.01em"></span>
+      <div class="ampel-row">
+        <div class="ampel-card">
+          <div class="dot" id="ampel_dot"></div>
+          <div class="ampel-text">
+            <h3 id="ampel_title"></h3>
+            <p id="ampel_msg"></p>
+            <span id="ampel_monthly" style="display:none;font-size:12px;font-weight:600;margin-top:2px;letter-spacing:.01em"></span>
+          </div>
+        </div>
+        <div class="kapital-card" id="kapital_card" style="display:none">
+          <div class="kapital-label">Kapitalbedarf</div>
+          <div class="kapital-val" id="r_kapital">—</div>
+          <div class="kapital-sub">(EK + Versand + Zoll)</div>
         </div>
       </div>
 
@@ -1064,6 +1076,7 @@ const IMPORT_MAP = [
   { id:'target_margin',         label:'Zielmarge %',               keys:['target_margin','targetMargin','margin_target','desired_margin','profit_margin_target','min_margin'], pct:true },
   // ── Freitextfelder ──
   { id:'opportunity_check',     label:'Opportunity Check',          keys:['opportunity_check','opportunityCheck','opportunity','opportunity_score','market_opportunity','chance','bewertung','fazit'] },
+  { id:'r_kapital',             label:'Kapitalbedarf (€)',          keys:['kapital','capital','kapitalbedarf','capital_required','investment','kapital_bedarf','initial_investment'] },
   { id:'markt_notiz',           label:'Markteinschätzung',         keys:['markt_notiz','market_notes','marketNotes','notes','description','analysis','market_analysis','remarks','comment','summary'] },
   { id:'anfrage_lieferanten',   label:'Anfrage Lieferanten',       keys:['anfrage_lieferanten','supplier_inquiry','supplierInquiry','inquiry_template','anfragetext','supplier_message','supplier_email','anfrage'] },
   // ── Markt-Links ──
@@ -1728,6 +1741,18 @@ function calc() {
     } else {
       ampelM.style.display = 'none';
     }
+  }
+
+  // Kapitalbedarf = (EK + Zoll/Stück) × Qty + Versand gesamt
+  const kapCard = $('kapital_card');
+  const kapEl   = $('r_kapital');
+  if (kapCard && kapEl && ek > 0 && qty > 0) {
+    const customsPerUnit = ek * (customsPct) + customsFixed;
+    const kapital = (ek + customsPerUnit) * qty + shippingTotal;
+    kapEl.textContent = fmt(kapital);
+    kapCard.style.display = 'flex';
+  } else if (kapCard) {
+    kapCard.style.display = 'none';
   }
 }
 
