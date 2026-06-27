@@ -113,7 +113,7 @@ tr.section td,tr.section th{background:var(--surface-3);font-size:10px;font-weig
   <div class="header-right">
     <button class="btn btn-ghost" onclick="document.getElementById('file_input').click()"><i class="ti ti-plus"></i> Produkt hinzufügen</button>
     <button class="btn btn-danger" id="clear_btn" onclick="clearAll()" style="display:none"><i class="ti ti-trash"></i> Alle entfernen</button>
-    <span class="badge">v1.1</span>
+    <span class="badge">v1.3</span>
   </div>
 </div>
 
@@ -134,7 +134,7 @@ tr.section td,tr.section th{background:var(--surface-3);font-size:10px;font-weig
 <div class="hint" id="hint" style="display:none">
   <span style="color:var(--green-text);font-weight:600">▲ grün</span> = bester Wert je Zeile &nbsp;·&nbsp;
   <span style="color:var(--red);font-weight:600">▼ rot</span> = schlechtester Wert &nbsp;·&nbsp;
-  Marge berechnet aus VK / EK / FBA / Provision / Versand / PPC
+  Alle Werte direkt aus JSON — keine eigene Berechnung
 </div>
 
 <div class="table-wrap" id="table_wrap">
@@ -191,7 +191,6 @@ function loadFiles(files) {
         var obj = JSON.parse(e.target.result);
         obj._filename = file.name;
         obj._color    = COLORS[products.length % COLORS.length];
-        enrichProduct(obj);
         products.push(obj);
       } catch(err) {
         alert('Fehler beim Lesen von "' + file.name + '": ' + err.message);
@@ -210,24 +209,7 @@ function removeProduct(idx) {
   render();
 }
 
-// ─── Enrich: Marge berechnen falls nicht vorhanden ───────────
-function enrichProduct(p) {
-  var vk = parseFloat(p.vk) || 0;
-  if (!vk) return;
-  // Marge aus Rohdaten berechnen
-  var mwst   = parseFloat(p.mwst_pct || 19) / 100;
-  var ek     = parseFloat(p.ek) || 0;
-  var fba    = parseFloat(p.fba_manual || p.fba_fee || 0);
-  var prov   = vk * (parseFloat(p.prov_pct || 15) / 100);  // Provision auf Brutto-VK
-  var ship   = parseFloat(p.shipping_total || p.versand_ek || 0);
-  var ppc    = vk * (parseFloat(p.ppc_pct || 0) / 100);
-  var netVk  = vk / (1 + mwst);
-  var mEur   = netVk - ek - fba - prov - ship - ppc;
-  var mPct   = (mEur / vk) * 100;
-  // Nur setzen wenn nicht schon im JSON
-  if (!p.marge_eur && !p.marge)   p._marge_eur = parseFloat(mEur.toFixed(2));
-  if (!p.marge_pct && !p.marge_prozent) p._marge_pct = parseFloat(mPct.toFixed(2));
-}
+// Keine eigenen Berechnungen — Werte werden direkt aus JSON gelesen
 
 // ─── Helpers ─────────────────────────────────────────────────
 function gv(obj, keys) {
@@ -263,13 +245,13 @@ var ROWS = [
   { section: 'Kosten' },
   { label:'FBA-Gebühr',         keys:['fba_manual','fba_fee','fba_gebuehr'],                        fmt:fEur,  better:'low' },
   { label:'Amazon Provision',   keys:['prov_pct','provision_pct'],                                  fmt:fPct,  better:'low' },
-  { label:'Versandkosten (EK)', keys:['shipping_total','versand_ek','shipping_cost'],                fmt:fEur,  better:'low' },
+  { label:'Versand gesamt (EK)',keys:['shipping_total','versand_ek','shipping_cost'],                  fmt:fEur,  better:'low' },
   { label:'PPC % vom VK',       keys:['ppc_pct'],                                                   fmt:fPct,  better:'low' },
   { label:'Retourenquote',      keys:['return_pct','retourenquote','return_rate'],                   fmt:fPct,  better:'low' },
 
   { section: 'Ergebnis' },
-  { label:'Marge (€) *',        keys:['marge_eur','_marge_eur','marge','profit_eur','gewinn_eur'],  fmt:fEur,  better:'high' },
-  { label:'Marge (%) *',        keys:['marge_pct','_marge_pct','marge_prozent','margin_pct'],        fmt:fPct,  better:'high' },
+  { label:'Marge (€)',           keys:['marge_eur','marge','profit_eur','gewinn_eur'],               fmt:fEur,  better:'high' },
+  { label:'Marge (%)',           keys:['marge_pct','marge_prozent','margin_pct'],                     fmt:fPct,  better:'high' },
   { label:'ROI / Monat',        keys:['kpi_roi','roi_monat','roi_monthly'],                          fmt:fPct,  better:'high' },
   { label:'Amortisation',       keys:['kpi_amortisation','amortisation','payback_months'],           fmt:fMon,  better:'low'  },
   { label:'Break-Even',         keys:['kpi_break_even','break_even','breakeven'],                    fmt:fStk,  better:'low'  },
@@ -301,13 +283,13 @@ function highlight(row, idx) {
 
 // ─── Scoring ─────────────────────────────────────────────────
 var SCORE_DEF = [
-  { keys:['kpi_roi','roi_monat'],                                                     w:4, b:'high' },
-  { keys:['marge_pct','_marge_pct','marge_prozent','margin_pct'],                     w:3, b:'high' },
-  { keys:['marge_eur','_marge_eur','marge','profit_eur'],                              w:2, b:'high' },
-  { keys:['kpi_amortisation','amortisation','payback_months'],                         w:2, b:'low'  },
-  { keys:['kapital','r_kapital','kapitalbedarf','capital_needed'],                      w:1, b:'low'  },
-  { keys:['return_pct','retourenquote','return_rate'],                                 w:1, b:'low'  },
-  { keys:['sales_month','absatz_monat'],                                               w:1, b:'high' },
+  { keys:['kpi_roi','roi_monat'],                               w:4, b:'high' },
+  { keys:['marge_pct','marge_prozent','margin_pct'],            w:3, b:'high' },
+  { keys:['marge_eur','marge','profit_eur'],                    w:2, b:'high' },
+  { keys:['kpi_amortisation','amortisation','payback_months'],  w:2, b:'low'  },
+  { keys:['kapital','r_kapital','kapitalbedarf'],                w:1, b:'low'  },
+  { keys:['return_pct','retourenquote','return_rate'],           w:1, b:'low'  },
+  { keys:['sales_month','absatz_monat'],                         w:1, b:'high' },
 ];
 function calcScores() {
   var scores = products.map(function(){ return 0; });
@@ -400,10 +382,10 @@ function render() {
     html += '</tr>';
   });
 
-  // Marge-Rating-Zeile
+  // Marge-Rating — nur wenn marge_pct direkt in JSON vorhanden
   html += '<tr><td class="row-label">Marge-Rating</td>';
   products.forEach(function(p) {
-    var pct = parseFloat(gv(p, ['marge_pct','_marge_pct','marge_prozent','margin_pct']));
+    var pct = parseFloat(gv(p, ['marge_pct','marge_prozent','margin_pct']));
     if (isNaN(pct)) { html += '<td><span class="val-neutral">—</span></td>'; return; }
     var pill, lbl;
     if (pct >= 25)      { pill='pill-green';  lbl='Gut ('+pct.toFixed(1)+' %)'; }
@@ -439,7 +421,7 @@ function render() {
   }
 
   html += '</tbody></table>';
-  html += '<div style="font-size:10px;color:var(--text-muted);margin-top:10px">* Marge berechnet aus VK – EK – FBA – Provision – Versand – PPC (netto, ohne MwSt.). Abweichungen vom Kalkulator möglich.</div>';
+  html += '<div style="font-size:10px;color:var(--text-muted);margin-top:10px">Alle Werte direkt aus dem JSON-Export übernommen. Marge und Marge-Rating nur sichtbar wenn im Kalkulator berechnet und exportiert (ab v1.7).</div>';
   tw.innerHTML = html;
 }
 
