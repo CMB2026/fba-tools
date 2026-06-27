@@ -113,7 +113,7 @@ tr.section td,tr.section th{background:var(--surface-3);font-size:10px;font-weig
   <div class="header-right">
     <button class="btn btn-ghost" onclick="document.getElementById('file_input').click()"><i class="ti ti-plus"></i> Produkt hinzufügen</button>
     <button class="btn btn-danger" id="clear_btn" onclick="clearAll()" style="display:none"><i class="ti ti-trash"></i> Alle entfernen</button>
-    <span class="badge">v1.3</span>
+    <span class="badge">v1.4</span>
   </div>
 </div>
 
@@ -252,6 +252,7 @@ var ROWS = [
   { section: 'Ergebnis' },
   { label:'Marge (€)',           keys:['marge_eur','marge','profit_eur','gewinn_eur'],               fmt:fEur,  better:'high' },
   { label:'Marge (%)',           keys:['marge_pct','marge_prozent','margin_pct'],                     fmt:fPct,  better:'high' },
+  { label:'Gewinn / Monat',     keys:['gewinn_monat','profit_month','monthly_profit'],               fmt:fEurK, better:'high' },
   { label:'ROI / Monat',        keys:['kpi_roi','roi_monat','roi_monthly'],                          fmt:fPct,  better:'high' },
   { label:'Amortisation',       keys:['kpi_amortisation','amortisation','payback_months'],           fmt:fMon,  better:'low'  },
   { label:'Break-Even',         keys:['kpi_break_even','break_even','breakeven'],                    fmt:fStk,  better:'low'  },
@@ -289,6 +290,7 @@ var SCORE_DEF = [
   { keys:['kpi_amortisation','amortisation','payback_months'],  w:2, b:'low'  },
   { keys:['kapital','r_kapital','kapitalbedarf'],                w:1, b:'low'  },
   { keys:['return_pct','retourenquote','return_rate'],           w:1, b:'low'  },
+  { keys:['gewinn_monat','profit_month','monthly_profit'],        w:2, b:'high' },
   { keys:['sales_month','absatz_monat'],                         w:1, b:'high' },
 ];
 function calcScores() {
