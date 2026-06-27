@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FBA Produktvergleich</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root {
+  --bg:            #0f1117;
+  --surface:       #181c27;
+  --surface-2:     #1e2336;
+  --surface-3:     #252b3d;
+  --border:        #2a2f45;
+  --border-strong: #3a4060;
+  --text:          #e4e8f4;
+  --text-muted:    #6b7494;
+  --text-secondary:#9ba3c4;
+  --accent:        #4f6ef7;
+  --accent-bg:     rgba(79,110,247,.09);
+  --green:         #5e9b00;
+  --green-bg:      rgba(94,155,0,.13);
+  --green-text:    #8ecc2b;
+  --red:           #e05353;
+  --red-bg:        rgba(224,83,83,.13);
+  --yellow:        #e8a624;
+  --yellow-bg:     rgba(232,166,36,.11);
+  --radius:        10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter','Segoe UI',system-ui,sans-serif;font-size:13px;min-height:100vh}
+
+/* Header */
+.header{background:linear-gradient(135deg,#03316c 0%,#05205a 60%,#0a1a40 100%);padding:14px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #1a2a5e}
+.header-logo{font-size:16px;font-weight:700;color:#fff;letter-spacing:.5px}
+.header-logo span{color:#8ecc2b}
+.header-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+.badge{background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;letter-spacing:.5px}
+.header-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.15s}
+.btn-ghost{background:transparent;color:var(--text-secondary);border:.5px solid var(--border-strong)}
+.btn-ghost:hover{background:var(--surface-2);color:var(--text)}
+.btn-danger{background:transparent;color:var(--red);border:.5px solid rgba(224,83,83,.3)}
+.btn-danger:hover{background:var(--red-bg)}
+
+/* Drop zone */
+.drop-area{margin:20px;border:2px dashed var(--border-strong);border-radius:var(--radius);padding:2.5rem;text-align:center;transition:.2s;cursor:pointer;background:var(--surface)}
+.drop-area:hover,.drop-area.dragover{border-color:var(--accent);background:var(--accent-bg)}
+.drop-area i{font-size:36px;color:var(--accent);opacity:.6;display:block;margin-bottom:10px}
+.drop-area-title{font-size:14px;font-weight:600;color:var(--text-secondary)}
+.drop-area-sub{font-size:11px;color:var(--text-muted);margin-top:5px}
+#file_input{display:none}
+
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.product-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.chip{display:inline-flex;align-items:center;gap:5px;background:var(--surface-2);border:.5px solid var(--border-strong);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500;color:var(--text-secondary)}
+.chip-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.hint{font-size:11px;color:var(--text-muted);padding:5px 20px;background:var(--surface-2);border-bottom:1px solid var(--border)}
+
+/* Table */
+.table-wrap{overflow-x:auto;padding:0 20px 40px}
+table{border-collapse:collapse;width:100%}
+th,td{padding:8px 14px;text-align:left;vertical-align:middle;border-bottom:1px solid var(--border)}
+th{background:var(--surface);font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;z-index:10}
+td{background:var(--surface);font-size:12px}
+tr:hover td{background:var(--surface-2)}
+td.row-label,th.row-label{color:var(--text-secondary);font-size:11px;font-weight:500;background:var(--surface-2);min-width:170px;position:sticky;left:0;z-index:5;border-right:1px solid var(--border-strong)}
+th.row-label{z-index:15;background:var(--surface-2)}
+tr.section td,tr.section th{background:var(--surface-3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);padding:5px 14px}
+
+/* Product header column */
+.prod-header{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:170px;max-width:210px}
+.prod-img-wrap{width:60px;height:60px;border-radius:8px;overflow:hidden;background:var(--surface-3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.prod-img-wrap img{width:100%;height:100%;object-fit:contain}
+.prod-name{font-size:12px;font-weight:700;text-align:center;word-break:break-word;line-height:1.4}
+
+/* Values */
+.val{font-weight:600;color:var(--text)}
+.val-best{color:var(--green-text);font-weight:700}
+.val-worst{color:var(--red)}
+.val-neutral{color:var(--text-secondary)}
+.val-text{color:var(--text-secondary);font-size:11px;font-weight:400;max-width:200px;display:block;white-space:normal;line-height:1.4}
+
+/* Pills */
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.pill-green{background:var(--green-bg);color:var(--green-text)}
+.pill-red{background:var(--red-bg);color:var(--red)}
+.pill-yellow{background:var(--yellow-bg);color:var(--yellow)}
+
+/* Winner */
+.winner-badge{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#5e9b00,#3d6800);color:#fff;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700}
+
+/* Score bar */
+.score-bar-wrap{display:flex;align-items:center;gap:8px}
+.score-bar-bg{height:6px;border-radius:3px;background:var(--border);flex:1;overflow:hidden;min-width:60px}
+.score-bar-fill{height:100%;border-radius:3px;transition:.4s}
+
+/* Empty */
+.empty{text-align:center;padding:70px 20px;color:var(--text-muted)}
+.empty i{font-size:52px;display:block;margin-bottom:14px;opacity:.25}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-logo">Mite<span>Guard</span> · FBA <span style="font-weight:400;color:rgba(255,255,255,.7)">Produktvergleich</span></div>
+    <div class="header-sub">JSON-Exporte aus dem Kalkulator laden und nebeneinander vergleichen</div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-ghost" onclick="document.getElementById('file_input').click()"><i class="ti ti-plus"></i> Produkt hinzufügen</button>
+    <button class="btn btn-danger" id="clear_btn" onclick="clearAll()" style="display:none"><i class="ti ti-trash"></i> Alle entfernen</button>
+    <span class="badge">v1.1</span>
+  </div>
+</div>
+
+<input type="file" id="file_input" accept=".json,application/json" multiple onchange="onFileInput(this)">
+
+<div class="drop-area" id="drop_area">
+  <i class="ti ti-file-import"></i>
+  <div class="drop-area-title">JSON-Dateien hier ablegen oder klicken</div>
+  <div class="drop-area-sub">Exporte aus dem FBA-Kalkulator · mehrere Dateien gleichzeitig möglich</div>
+</div>
+
+<div id="toolbar" class="toolbar" style="display:none">
+  <span style="font-size:12px;font-weight:600;color:var(--text-secondary);flex-shrink:0">Produkte:</span>
+  <div class="product-chips" id="chip_row"></div>
+  <button class="btn btn-ghost" onclick="document.getElementById('file_input').click()"><i class="ti ti-plus"></i> Hinzufügen</button>
+</div>
+
+<div class="hint" id="hint" style="display:none">
+  <span style="color:var(--green-text);font-weight:600">▲ grün</span> = bester Wert je Zeile &nbsp;·&nbsp;
+  <span style="color:var(--red);font-weight:600">▼ rot</span> = schlechtester Wert &nbsp;·&nbsp;
+  Marge berechnet aus VK / EK / FBA / Provision / Versand / PPC
+</div>
+
+<div class="table-wrap" id="table_wrap">
+  <div class="empty">
+    <i class="ti ti-chart-bar-off"></i>
+    <div style="font-size:14px;font-weight:600;margin-bottom:6px">Noch keine Produkte geladen</div>
+    <div>JSON-Exporte aus dem FBA-Kalkulator ablegen oder oben auswählen</div>
+  </div>
+</div>
+
+<script>
+var products = [];
+var COLORS = ['#4f6ef7','#8ecc2b','#e8a624','#e05353','#c47af4','#17b8c7','#f76b4f','#fa8cc7'];
+
+// ─── Drop Zone Setup ─────────────────────────────────────────
+(function(){
+  var z = document.getElementById('drop_area');
+
+  // Click → file picker
+  z.addEventListener('click', function(){ document.getElementById('file_input').click(); });
+
+  z.addEventListener('dragover', function(e){ e.preventDefault(); e.stopPropagation(); z.classList.add('dragover'); });
+  z.addEventListener('dragleave', function(e){ e.stopPropagation(); z.classList.remove('dragover'); });
+  z.addEventListener('drop', function(e){
+    e.preventDefault();
+    e.stopPropagation(); // ← verhindert Doppelverarbeitung durch document-Handler
+    z.classList.remove('dragover');
+    loadFiles(e.dataTransfer.files);
+  });
+
+  // Global fallback: drop outside the zone after products loaded
+  document.addEventListener('dragover', function(e){ e.preventDefault(); });
+  document.addEventListener('drop', function(e){
+    e.preventDefault();
+    if (e.target === z || z.contains(e.target)) return; // schon oben behandelt
+    if (e.dataTransfer.files.length) loadFiles(e.dataTransfer.files);
+  });
+})();
+
+function onFileInput(input) {
+  loadFiles(input.files);
+  input.value = ''; // Reset → gleiche Datei erneut ladbar
+}
+
+// ─── Load / Manage ───────────────────────────────────────────
+function loadFiles(files) {
+  var arr = Array.from(files).filter(function(f){ return f.name.endsWith('.json') || f.type === 'application/json'; });
+  if (!arr.length) return;
+  var pending = arr.length;
+  arr.forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var obj = JSON.parse(e.target.result);
+        obj._filename = file.name;
+        obj._color    = COLORS[products.length % COLORS.length];
+        enrichProduct(obj);
+        products.push(obj);
+      } catch(err) {
+        alert('Fehler beim Lesen von "' + file.name + '": ' + err.message);
+      }
+      if (--pending === 0) render();
+    };
+    reader.readAsText(file);
+  });
+}
+
+function clearAll() { products = []; render(); }
+
+function removeProduct(idx) {
+  products.splice(idx, 1);
+  products.forEach(function(p, i){ p._color = COLORS[i % COLORS.length]; });
+  render();
+}
+
+// ─── Enrich: Marge berechnen falls nicht vorhanden ───────────
+function enrichProduct(p) {
+  var vk = parseFloat(p.vk) || 0;
+  if (!vk) return;
+  // Marge aus Rohdaten berechnen
+  var mwst   = parseFloat(p.mwst_pct || 19) / 100;
+  var ek     = parseFloat(p.ek) || 0;
+  var fba    = parseFloat(p.fba_manual || p.fba_fee || 0);
+  var prov   = vk * (parseFloat(p.prov_pct || 15) / 100);  // Provision auf Brutto-VK
+  var ship   = parseFloat(p.shipping_total || p.versand_ek || 0);
+  var ppc    = vk * (parseFloat(p.ppc_pct || 0) / 100);
+  var netVk  = vk / (1 + mwst);
+  var mEur   = netVk - ek - fba - prov - ship - ppc;
+  var mPct   = (mEur / vk) * 100;
+  // Nur setzen wenn nicht schon im JSON
+  if (!p.marge_eur && !p.marge)   p._marge_eur = parseFloat(mEur.toFixed(2));
+  if (!p.marge_pct && !p.marge_prozent) p._marge_pct = parseFloat(mPct.toFixed(2));
+}
+
+// ─── Helpers ─────────────────────────────────────────────────
+function gv(obj, keys) {
+  for (var i = 0; i < keys.length; i++) {
+    var v = obj[keys[i]];
+    if (v !== undefined && v !== null && v !== '') return v;
+  }
+  return null;
+}
+function fmt(v, dec, sfx) {
+  if (v === null || v === undefined || v === '') return '—';
+  var n = parseFloat(v);
+  if (isNaN(n)) return String(v);
+  return n.toFixed(dec).replace('.', ',') + (sfx ? sfx : '');
+}
+var fEur  = function(v){ return fmt(v, 2, ' €'); };
+var fPct  = function(v){ return fmt(v, 1, ' %'); };
+var fStk  = function(v){ return fmt(v, 0, ' Stk.'); };
+var fMon  = function(v){ return fmt(v, 1, ' Mon.'); };
+var fNum  = function(v){ return fmt(v, 0, ''); };
+var fEurK = function(v){ return fmt(v, 0, ' €'); };
+var fText = function(v){ return v ? String(v) : '—'; };
+
+// ─── Metric rows ─────────────────────────────────────────────
+var ROWS = [
+  { section: 'Eckdaten' },
+  { label:'Verkaufspreis (VK)',  keys:['vk'],                                                        fmt:fEur,  better:'none' },
+  { label:'Einkaufspreis (EK)', keys:['ek'],                                                        fmt:fEur,  better:'low'  },
+  { label:'FBA-Kategorie',      keys:['fba_category','kategorie','category'],                       fmt:fText, better:'none' },
+  { label:'Bestellmenge',       keys:['qty','stueckzahl','order_quantity','menge'],                  fmt:fStk,  better:'none' },
+  { label:'Absatz / Monat',     keys:['sales_month','absatz_monat','monthly_sales'],                 fmt:fStk,  better:'high' },
+
+  { section: 'Kosten' },
+  { label:'FBA-Gebühr',         keys:['fba_manual','fba_fee','fba_gebuehr'],                        fmt:fEur,  better:'low' },
+  { label:'Amazon Provision',   keys:['prov_pct','provision_pct'],                                  fmt:fPct,  better:'low' },
+  { label:'Versandkosten (EK)', keys:['shipping_total','versand_ek','shipping_cost'],                fmt:fEur,  better:'low' },
+  { label:'PPC % vom VK',       keys:['ppc_pct'],                                                   fmt:fPct,  better:'low' },
+  { label:'Retourenquote',      keys:['return_pct','retourenquote','return_rate'],                   fmt:fPct,  better:'low' },
+
+  { section: 'Ergebnis' },
+  { label:'Marge (€) *',        keys:['marge_eur','_marge_eur','marge','profit_eur','gewinn_eur'],  fmt:fEur,  better:'high' },
+  { label:'Marge (%) *',        keys:['marge_pct','_marge_pct','marge_prozent','margin_pct'],        fmt:fPct,  better:'high' },
+  { label:'ROI / Monat',        keys:['kpi_roi','roi_monat','roi_monthly'],                          fmt:fPct,  better:'high' },
+  { label:'Amortisation',       keys:['kpi_amortisation','amortisation','payback_months'],           fmt:fMon,  better:'low'  },
+  { label:'Break-Even',         keys:['kpi_break_even','break_even','breakeven'],                    fmt:fStk,  better:'low'  },
+
+  { section: 'Kapital & Markt' },
+  { label:'Kapitalbedarf',      keys:['kapital','r_kapital','kapitalbedarf','capital_needed'],        fmt:fEurK, better:'low'  },
+  { label:'Markt Ø Umsatz/Mon.',keys:['sv_avg_rev','markt_avg_umsatz'],                             fmt:fEurK, better:'none' },
+  { label:'Markt Gesamtumsatz', keys:['sv_total_rev','markt_umsatz'],                               fmt:fEurK, better:'none' },
+  { label:'Premium Ø Reviews',  keys:['segment_high_reviews'],                                       fmt:fNum,  better:'none' },
+  { label:'Low-Segment Reviews',keys:['segment_low_reviews'],                                        fmt:fNum,  better:'none' },
+];
+
+function resolve(p, row) { return gv(p, row.keys); }
+
+// ─── Highlight best/worst ─────────────────────────────────────
+function highlight(row, idx) {
+  if (!row.better || row.better === 'none') return '';
+  var vals = products.map(function(p){ return parseFloat(resolve(p, row)); });
+  var defined = vals.filter(function(v){ return !isNaN(v); });
+  if (defined.length < 2) return '';
+  var best  = row.better === 'high' ? Math.max.apply(null,defined) : Math.min.apply(null,defined);
+  var worst = row.better === 'high' ? Math.min.apply(null,defined) : Math.max.apply(null,defined);
+  var v = vals[idx];
+  if (isNaN(v)) return '';
+  if (v === best)  return 'best';
+  if (v === worst) return 'worst';
+  return '';
+}
+
+// ─── Scoring ─────────────────────────────────────────────────
+var SCORE_DEF = [
+  { keys:['kpi_roi','roi_monat'],                                                     w:4, b:'high' },
+  { keys:['marge_pct','_marge_pct','marge_prozent','margin_pct'],                     w:3, b:'high' },
+  { keys:['marge_eur','_marge_eur','marge','profit_eur'],                              w:2, b:'high' },
+  { keys:['kpi_amortisation','amortisation','payback_months'],                         w:2, b:'low'  },
+  { keys:['kapital','r_kapital','kapitalbedarf','capital_needed'],                      w:1, b:'low'  },
+  { keys:['return_pct','retourenquote','return_rate'],                                 w:1, b:'low'  },
+  { keys:['sales_month','absatz_monat'],                                               w:1, b:'high' },
+];
+function calcScores() {
+  var scores = products.map(function(){ return 0; });
+  SCORE_DEF.forEach(function(sk) {
+    var vals = products.map(function(p){ return parseFloat(gv(p, sk.keys)); });
+    var def  = vals.filter(function(v){ return !isNaN(v); });
+    if (def.length < 2) return;
+    var best  = sk.b === 'high' ? Math.max.apply(null,def) : Math.min.apply(null,def);
+    var worst = sk.b === 'high' ? Math.min.apply(null,def) : Math.max.apply(null,def);
+    var rng   = Math.abs(best - worst);
+    vals.forEach(function(v, i){
+      if (isNaN(v)) return;
+      scores[i] += (rng > 0 ? Math.abs(v - worst) / rng : 0.5) * sk.w;
+    });
+  });
+  return scores;
+}
+
+// ─── Render ───────────────────────────────────────────────────
+function render() {
+  var dropArea = document.getElementById('drop_area');
+  var toolbar  = document.getElementById('toolbar');
+  var hint     = document.getElementById('hint');
+  var clearBtn = document.getElementById('clear_btn');
+  var tw       = document.getElementById('table_wrap');
+
+  if (products.length === 0) {
+    dropArea.style.display = '';
+    toolbar.style.display  = 'none';
+    hint.style.display     = 'none';
+    clearBtn.style.display = 'none';
+    tw.innerHTML = '<div class="empty"><i class="ti ti-chart-bar-off"></i><div style="font-size:14px;font-weight:600;margin-bottom:6px">Noch keine Produkte geladen</div><div>JSON-Exporte aus dem FBA-Kalkulator ablegen</div></div>';
+    return;
+  }
+
+  dropArea.style.display = 'none';
+  toolbar.style.display  = '';
+  hint.style.display     = '';
+  clearBtn.style.display = '';
+
+  // Chip-Leiste
+  var chipRow = document.getElementById('chip_row');
+  chipRow.innerHTML = '';
+  products.forEach(function(p, i) {
+    var name = gv(p, ['produktname','product_name','name']) || p._filename || 'Produkt ' + (i+1);
+    var chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.innerHTML = '<span class="chip-dot" style="background:'+p._color+'"></span>' + escH(name.length > 24 ? name.slice(0,24)+'…' : name);
+    chipRow.appendChild(chip);
+  });
+
+  var scores    = products.length >= 2 ? calcScores() : null;
+  var winnerIdx = scores ? scores.indexOf(Math.max.apply(null, scores)) : -1;
+
+  // Tabellen-Header
+  var html = '<table><thead><tr><th class="row-label">Kennzahl</th>';
+  products.forEach(function(p, i) {
+    var name = gv(p, ['produktname','product_name','name']) || p._filename || 'Produkt '+(i+1);
+    var imgSrc = gv(p, ['produktbild','product_image','image','bild']);
+    var imgTag = (imgSrc && imgSrc.indexOf('data:') === 0)
+      ? '<img src="'+imgSrc+'" alt="">'
+      : '<i class="ti ti-package" style="font-size:24px;color:var(--text-muted)"></i>';
+    html += '<th><div class="prod-header">';
+    html += '<div class="prod-img-wrap">'+imgTag+'</div>';
+    html += '<div class="prod-name" style="color:'+p._color+'">'+escH(name)+'</div>';
+    if (winnerIdx === i) html += '<div class="winner-badge"><i class="ti ti-trophy" style="font-size:10px"></i> Empfehlung</div>';
+    html += '<button class="btn btn-danger" style="margin-top:4px;padding:4px 10px" onclick="removeProduct('+i+')"><i class="ti ti-x"></i> Entfernen</button>';
+    html += '</div></th>';
+  });
+  html += '</tr></thead><tbody>';
+
+  // Datenzeilen
+  ROWS.forEach(function(row) {
+    if (row.section) {
+      html += '<tr class="section"><td class="row-label">'+row.section+'</td>';
+      products.forEach(function(){ html += '<td></td>'; });
+      html += '</tr>'; return;
+    }
+    html += '<tr><td class="row-label">'+escH(row.label)+'</td>';
+    products.forEach(function(p, i) {
+      var raw  = resolve(p, row);
+      var hl   = highlight(row, i);
+      var disp = row.fmt(raw === null || raw === undefined ? '' : raw);
+      var cls  = hl === 'best' ? 'val-best' : hl === 'worst' ? 'val-worst' : 'val-neutral';
+      var icon = hl === 'best'
+        ? ' <i class="ti ti-arrow-up" style="font-size:10px;opacity:.7"></i>'
+        : hl === 'worst' ? ' <i class="ti ti-arrow-down" style="font-size:10px;opacity:.7"></i>' : '';
+      html += '<td><span class="val '+cls+'">'+escH(disp)+icon+'</span></td>';
+    });
+    html += '</tr>';
+  });
+
+  // Marge-Rating-Zeile
+  html += '<tr><td class="row-label">Marge-Rating</td>';
+  products.forEach(function(p) {
+    var pct = parseFloat(gv(p, ['marge_pct','_marge_pct','marge_prozent','margin_pct']));
+    if (isNaN(pct)) { html += '<td><span class="val-neutral">—</span></td>'; return; }
+    var pill, lbl;
+    if (pct >= 25)      { pill='pill-green';  lbl='Gut ('+pct.toFixed(1)+' %)'; }
+    else if (pct >= 15) { pill='pill-yellow'; lbl='Mittel ('+pct.toFixed(1)+' %)'; }
+    else                { pill='pill-red';    lbl='Kritisch ('+pct.toFixed(1)+' %)'; }
+    html += '<td><span class="pill '+pill+'">'+lbl+'</span></td>';
+  });
+  html += '</tr>';
+
+  // Opportunity-Notiz
+  html += '<tr><td class="row-label">Markt-Einschätzung</td>';
+  products.forEach(function(p) {
+    var txt = gv(p, ['opportunity_check','markt_notiz','market_note']) || '';
+    if (!txt) { html += '<td><span class="val-neutral">—</span></td>'; return; }
+    var short = txt.length > 120 ? txt.slice(0,120)+'…' : txt;
+    html += '<td><span class="val-text">'+escH(short)+'</span></td>';
+  });
+  html += '</tr>';
+
+  // Score-Balken
+  if (scores) {
+    var maxS = Math.max.apply(null, scores);
+    html += '<tr><td class="row-label">Gesamt&shy;score</td>';
+    scores.forEach(function(s, i) {
+      var pct = maxS > 0 ? Math.round((s/maxS)*100) : 0;
+      var col = i === winnerIdx ? 'var(--green-text)' : 'var(--text-secondary)';
+      html += '<td><div class="score-bar-wrap">';
+      html += '<div class="score-bar-bg"><div class="score-bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>';
+      html += '<span style="font-size:11px;font-weight:700;color:'+col+'">'+pct+' Pkt.</span>';
+      html += '</div></td>';
+    });
+    html += '</tr>';
+  }
+
+  html += '</tbody></table>';
+  html += '<div style="font-size:10px;color:var(--text-muted);margin-top:10px">* Marge berechnet aus VK – EK – FBA – Provision – Versand – PPC (netto, ohne MwSt.). Abweichungen vom Kalkulator möglich.</div>';
+  tw.innerHTML = html;
+}
+
+function escH(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
