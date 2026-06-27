@@ -585,7 +585,7 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
         <div class="kapital-card" id="kapital_card">
           <div class="kapital-label">Kapitalbedarf</div>
           <div class="kapital-val-wrap">
-            <input type="number" id="r_kapital" class="kapital-val" placeholder="0" min="0" step="0.01" oninput="calcAll()">
+            <input type="number" id="r_kapital" class="kapital-val" placeholder="0" min="0" step="0.01" oninput="calc()">
             <span class="kapital-eur">€</span>
           </div>
           <div class="kapital-sub">Gesamtinvestition</div>
@@ -1357,6 +1357,7 @@ function applyImport() {
     }
   }
 
+  calc();
   calcAll();
   closeImportModal();
 }
