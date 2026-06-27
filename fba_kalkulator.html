@@ -106,10 +106,6 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 
 /* Right panel — results */
 .ampel-row{display:flex;gap:10px;margin-bottom:.875rem;align-items:stretch;flex-wrap:wrap}
-.kpi-card{border-radius:10px;border:.5px solid var(--accent);padding:.75rem 1rem;background:rgba(3,49,108,.04);display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:110px;flex-shrink:0;text-align:center}
-.kpi-label{font-size:9px;font-weight:600;letter-spacing:.1em;color:var(--accent);text-transform:uppercase}
-.kpi-val{font-size:18px;font-weight:700;color:var(--accent);letter-spacing:-.01em}
-.kpi-sub{font-size:9px;color:var(--accent);opacity:.65}
 .ampel-card{border-radius:10px;border:.5px solid var(--border);padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:12px;background:var(--surface);flex:1}
 .kapital-card{border-radius:10px;border:1.5px solid var(--accent);padding:1rem 1.25rem;background:rgba(3,49,108,.05);display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:150px;flex-shrink:0;text-align:center}
 .kapital-label{font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--accent);text-transform:uppercase}
@@ -429,7 +425,7 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
   <div class="h-right">
     <button class="export-btn" onclick="openImportModal()"><i class="ti ti-upload"></i> JSON Import</button>
     <button class="export-btn" onclick="doExport()"><i class="ti ti-printer"></i> Export PDF</button>
-    <span class="badge">v1.5</span>
+    <span class="badge">v1.4</span>
   </div>
 </header>
 
@@ -589,21 +585,6 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
             <span class="kapital-eur">€</span>
           </div>
           <div class="kapital-sub">Gesamtinvestition</div>
-        </div>
-        <div class="kpi-card" id="kpi_roi_card">
-          <div class="kpi-label">ROI / Monat</div>
-          <div class="kpi-val" id="kpi_roi">—</div>
-          <div class="kpi-sub">Kapitalrendite</div>
-        </div>
-        <div class="kpi-card" id="kpi_amort_card">
-          <div class="kpi-label">Amortisation</div>
-          <div class="kpi-val" id="kpi_amort">—</div>
-          <div class="kpi-sub">bis Break-Even</div>
-        </div>
-        <div class="kpi-card" id="kpi_be_card">
-          <div class="kpi-label">Break-Even</div>
-          <div class="kpi-val" id="kpi_be">—</div>
-          <div class="kpi-sub">Stück gesamt</div>
         </div>
       </div>
 
@@ -1359,12 +1340,7 @@ function applyImport() {
 
   calc();
 
-  // KPI-Karten: direkt aus JSON-Objekt befüllen (kein findVal)
-  if (obj.kpi_roi          != null) document.getElementById('kpi_roi').textContent   = parseFloat(obj.kpi_roi).toFixed(1)          + ' %';
-  if (obj.kpi_amortisation != null) document.getElementById('kpi_amort').textContent = parseFloat(obj.kpi_amortisation).toFixed(1) + ' Mon.';
-  if (obj.kpi_break_even   != null) document.getElementById('kpi_be').textContent    = Math.round(parseFloat(obj.kpi_break_even)).toLocaleString('de-DE') + ' Stk.';
-
-  try { calcAll(); } catch(e) { console.warn('calcAll error:', e); }
+  calcAll();
 
   closeImportModal();
 }
