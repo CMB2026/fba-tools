@@ -1358,19 +1358,22 @@ function applyImport() {
   }
 
   calc();
-  calcAll();
 
-  // KPI-Karten: vorberechnete Werte direkt aus JSON lesen
-  const kpiRoi   = findVal(obj, ['kpi_roi',   'roi_monat',      'roi_monthly',    'roi']);
-  const kpiAmort = findVal(obj, ['kpi_amortisation', 'amortisation', 'amortization', 'payback_months', 'amortisierung']);
-  const kpiBe    = findVal(obj, ['kpi_break_even',   'break_even',   'breakeven',    'break_even_units', 'break_even_stueck']);
-  if (kpiRoi !== null || kpiAmort !== null || kpiBe !== null) {
-    document.getElementById('results').style.display     = 'block';
-    document.getElementById('placeholder').style.display = 'none';
-    if (kpiRoi   !== null) { document.getElementById('kpi_roi').textContent   = parseFloat(kpiRoi).toFixed(1)   + ' %';    document.getElementById('kpi_roi_card').style.display   = 'flex'; }
-    if (kpiAmort !== null) { document.getElementById('kpi_amort').textContent = parseFloat(kpiAmort).toFixed(1) + ' Mon.'; document.getElementById('kpi_amort_card').style.display = 'flex'; }
-    if (kpiBe    !== null) { document.getElementById('kpi_be').textContent    = Math.round(parseFloat(kpiBe)).toLocaleString('de-DE') + ' Stk.'; document.getElementById('kpi_be_card').style.display = 'flex'; }
-  }
+  // KPI-Karten: vorberechnete Werte direkt aus JSON lesen (vor calcAll, damit kein Chart-Fehler blockiert)
+  try {
+    const kpiRoi   = findVal(obj, ['kpi_roi',   'roi_monat',   'roi_monthly',   'roi']);
+    const kpiAmort = findVal(obj, ['kpi_amortisation', 'amortisation', 'amortization', 'payback_months', 'amortisierung']);
+    const kpiBe    = findVal(obj, ['kpi_break_even',   'break_even',   'breakeven',    'break_even_units', 'break_even_stueck']);
+    if (kpiRoi !== null || kpiAmort !== null || kpiBe !== null) {
+      document.getElementById('results').style.display     = 'block';
+      document.getElementById('placeholder').style.display = 'none';
+      if (kpiRoi   !== null) { document.getElementById('kpi_roi').textContent   = parseFloat(kpiRoi).toFixed(1)   + ' %';    document.getElementById('kpi_roi_card').style.display   = 'flex'; }
+      if (kpiAmort !== null) { document.getElementById('kpi_amort').textContent = parseFloat(kpiAmort).toFixed(1) + ' Mon.'; document.getElementById('kpi_amort_card').style.display = 'flex'; }
+      if (kpiBe    !== null) { document.getElementById('kpi_be').textContent    = Math.round(parseFloat(kpiBe)).toLocaleString('de-DE') + ' Stk.'; document.getElementById('kpi_be_card').style.display = 'flex'; }
+    }
+  } catch(e) { console.warn('KPI import error:', e); }
+
+  try { calcAll(); } catch(e) { console.warn('calcAll error:', e); }
 
   closeImportModal();
 }
@@ -1801,24 +1804,6 @@ function calc() {
     } else {
       ampelM.style.display = 'none';
     }
-  }
-
-  // KPIs: ROI, Amortisation, Break-Even
-  const kapital = gv('r_kapital', 0);
-  const monthlyNet = netProfit * salesM;
-  const showKpi = kapital > 0 && netProfit > 0 && salesM > 0;
-
-  if ($('kpi_roi_card'))   $('kpi_roi_card').style.display   = showKpi ? 'flex' : 'none';
-  if ($('kpi_amort_card')) $('kpi_amort_card').style.display = showKpi ? 'flex' : 'none';
-  if ($('kpi_be_card'))    $('kpi_be_card').style.display    = showKpi ? 'flex' : 'none';
-
-  if (showKpi) {
-    const roi   = monthlyNet / kapital * 100;
-    const amort = kapital / monthlyNet;
-    const be    = Math.ceil(kapital / netProfit);
-    $('kpi_roi').textContent   = roi.toFixed(1)   + ' %';
-    $('kpi_amort').textContent = amort.toFixed(1) + ' Mon.';
-    $('kpi_be').textContent    = be.toLocaleString('de-DE') + ' Stk.';
   }
 
 }
