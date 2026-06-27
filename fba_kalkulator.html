@@ -437,7 +437,7 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
     <button class="export-btn" onclick="openImportModal()"><i class="ti ti-upload"></i> JSON Import</button>
     <button class="export-btn" onclick="exportJSON()"><i class="ti ti-download"></i> JSON Export</button>
     <button class="export-btn" onclick="doExport()"><i class="ti ti-printer"></i> Export PDF</button>
-    <span class="badge">v1.6</span>
+    <span class="badge">v1.7</span>
   </div>
 </header>
 
@@ -1503,6 +1503,18 @@ function exportJSON() {
     if (sName || sUrl) sups.push({ name: sName, url: sUrl, comment: sCom });
   }
   if (sups.length) data.lieferanten = sups;
+
+  // Berechnete Marge + Nettogewinn aus Ergebnisanzeige
+  var npEl  = document.getElementById('r_net_profit');
+  var mpEl  = document.getElementById('r_margin_pct');
+  if (npEl && npEl.textContent) {
+    var npVal = parseFloat(npEl.textContent.replace(/[^\d,.\-−]/g,'').replace(',','.').replace('−','-'));
+    if (!isNaN(npVal)) data.marge_eur = npVal;
+  }
+  if (mpEl && mpEl.textContent) {
+    var mpVal = parseFloat(mpEl.textContent.replace(/[^\d,.\-−]/g,'').replace(',','.').replace('−','-'));
+    if (!isNaN(mpVal)) data.marge_pct = mpVal;
+  }
 
   // Produktbild als Base64
   var img = document.getElementById('prod_img');
