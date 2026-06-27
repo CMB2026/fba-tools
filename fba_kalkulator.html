@@ -576,10 +576,10 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
             <span id="ampel_monthly" style="display:none;font-size:12px;font-weight:600;margin-top:2px;letter-spacing:.01em"></span>
           </div>
         </div>
-        <div class="kapital-card" id="kapital_card" style="display:none">
+        <div class="kapital-card" id="kapital_card">
           <div class="kapital-label">Kapitalbedarf</div>
-          <div class="kapital-val" id="r_kapital">—</div>
-          <div class="kapital-sub">(EK + Versand + Zoll)</div>
+          <input type="number" id="r_kapital" class="kapital-val" placeholder="—" min="0" step="0.01" style="border:none;background:transparent;width:100%;text-align:center;outline:none;font-size:20px;font-weight:700;color:var(--text-primary);letter-spacing:-.01em;font-family:inherit">
+          <div class="kapital-sub">€ Gesamtinvestition</div>
         </div>
       </div>
 
@@ -1743,17 +1743,6 @@ function calc() {
     }
   }
 
-  // Kapitalbedarf = (EK + Zoll/Stück) × Qty + Versand gesamt
-  const kapCard = $('kapital_card');
-  const kapEl   = $('r_kapital');
-  if (kapCard && kapEl && ek > 0 && qty > 0) {
-    const customsPerUnit = ek * (customsPct) + customsFixed;
-    const kapital = (ek + customsPerUnit) * qty + shippingTotal;
-    kapEl.textContent = fmt(kapital);
-    kapCard.style.display = 'flex';
-  } else if (kapCard) {
-    kapCard.style.display = 'none';
-  }
 }
 
 /* ─────────── TAB 2: SZENARIEN ─────────── */
