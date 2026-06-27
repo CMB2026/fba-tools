@@ -572,7 +572,7 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
       </div>
 
       <div class="result-grid">
-        <div class="metric"><span class="mlabel">VK netto</span><span class="mval" id="r_vk_net"></span></div>
+        <div class="metric"><span class="mlabel">VK brutto</span><span class="mval" id="r_vk_net"></span></div>
         <div class="metric"><span class="mlabel">Kosten/Stück</span><span class="mval" id="r_total_cost"></span></div>
         <div class="metric"><span class="mlabel">Gewinn/Stück</span><span class="mval" id="r_net_profit"></span></div>
         <div class="metric"><span class="mlabel">Nettomarge</span><span class="mval" id="r_margin_pct"></span><span class="msub" id="r_margin_sub"></span></div>
@@ -1623,7 +1623,7 @@ function calc() {
   $('placeholder').style.display = 'none';
   $('results').style.display = 'block';
 
-  $('r_vk_net').textContent     = fmt(vkNet);
+  $('r_vk_net').textContent     = fmt(vk);
   $('r_total_cost').textContent = fmt(totalCosts);
 
   const pEl = $('r_net_profit');
