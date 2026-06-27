@@ -113,6 +113,10 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 .kapital-val{font-size:24px;font-weight:800;color:var(--accent);letter-spacing:-.02em;background:transparent;border:none;outline:none;width:90px;text-align:right;font-family:inherit}
 .kapital-eur{font-size:18px;font-weight:700;color:var(--accent)}
 .kapital-sub{font-size:9px;color:var(--accent);opacity:.7;letter-spacing:.04em}
+.kpi-card{border-radius:10px;border:.5px solid var(--accent);padding:.75rem 1rem;background:rgba(3,49,108,.04);display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:110px;flex-shrink:0;text-align:center}
+.kpi-label{font-size:9px;font-weight:600;letter-spacing:.1em;color:var(--accent);text-transform:uppercase}
+.kpi-val{font-size:18px;font-weight:700;color:var(--accent);letter-spacing:-.01em}
+.kpi-sub{font-size:9px;color:var(--accent);opacity:.65}
 .dot{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .ampel-text h3{font-size:14px;font-weight:500;margin:0 0 3px}
 .ampel-text p{font-size:12px;color:var(--text-secondary);margin:0;line-height:1.5}
@@ -585,6 +589,30 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
             <span class="kapital-eur">€</span>
           </div>
           <div class="kapital-sub">Gesamtinvestition</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">ROI / Monat</div>
+          <div class="kapital-val-wrap">
+            <input type="number" id="kpi_roi_val" class="kapital-val" placeholder="—" readonly>
+            <span class="kapital-eur">%</span>
+          </div>
+          <div class="kpi-sub">Kapitalrendite</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Amortisation</div>
+          <div class="kapital-val-wrap">
+            <input type="number" id="kpi_amort_val" class="kapital-val" placeholder="—" readonly>
+            <span class="kapital-eur">Mon.</span>
+          </div>
+          <div class="kpi-sub">bis Break-Even</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Break-Even</div>
+          <div class="kapital-val-wrap">
+            <input type="number" id="kpi_be_val" class="kapital-val" placeholder="—" readonly>
+            <span class="kapital-eur">Stk.</span>
+          </div>
+          <div class="kpi-sub">Stück gesamt</div>
         </div>
       </div>
 
@@ -1088,6 +1116,9 @@ const IMPORT_MAP = [
   { id:'mlink_amazon',          label:'Link Amazon Hauptsuchbegriff', keys:['mlink_amazon','amazon_search_url','amazonSearchUrl','amazon_url','search_url','amazon_link','keyword_url'] },
   { id:'mlink_low',             label:'Link Niedrigpreis-Konkurrent', keys:['mlink_low','competitor_low_url','competitorLowUrl','low_competitor_url','low_price_competitor','competitor_cheap_url'] },
   { id:'mlink_high',            label:'Link Höherpreis-Konkurrent',   keys:['mlink_high','competitor_high_url','competitorHighUrl','high_competitor_url','high_price_competitor','competitor_premium_url'] },
+  { id:'kpi_roi_val',           label:'ROI / Monat (%)',              keys:['kpi_roi','roi_monat','roi_monthly'] },
+  { id:'kpi_amort_val',         label:'Amortisation (Monate)',        keys:['kpi_amortisation','amortisation','amortization','payback_months'] },
+  { id:'kpi_be_val',            label:'Break-Even (Stück)',           keys:['kpi_break_even','break_even','breakeven','break_even_units'] },
 ];
 
 // Suchvolumen Monate — viele mögliche Key-Varianten
@@ -1339,7 +1370,6 @@ function applyImport() {
   }
 
   calc();
-
   calcAll();
 
   closeImportModal();
