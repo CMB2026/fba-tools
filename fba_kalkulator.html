@@ -71,7 +71,14 @@ header{background:var(--surface);border-bottom:.5px solid var(--border);padding:
 .btn-primary{padding:6px 16px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
 .btn-primary:hover{opacity:.88}
 .btn-secondary{padding:6px 14px;border-radius:7px;background:var(--surface-muted);color:var(--text-secondary);border:.5px solid var(--border-strong);font-size:13px;cursor:pointer;font-family:inherit}
-.import-hint{font-size:11px;color:var(--text-muted);line-height:1.5}
+.import-hint{font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:6px}
+.import-tabs{display:flex;gap:6px;margin-bottom:10px}
+.import-tab{flex:1;padding:6px 10px;border:.5px solid var(--border);border-radius:7px;background:var(--surface-muted);color:var(--text-muted);font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
+.import-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.file-drop-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1.5px dashed var(--border-strong);border-radius:10px;padding:2rem 1rem;cursor:pointer;transition:border-color .15s,background .15s;text-align:center}
+.file-drop-zone:hover{border-color:var(--accent);background:var(--accent-bg)}
+.file-drop-zone.dragover{border-color:var(--accent);background:var(--accent-bg)}
+.file-drop-text{font-size:12px;color:var(--text-secondary);font-weight:500}
 
 /* ── TAB PANELS ── */
 .tab-panel{display:none}
@@ -430,7 +437,7 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
     <button class="export-btn" onclick="openImportModal()"><i class="ti ti-upload"></i> JSON Import</button>
     <button class="export-btn" onclick="exportJSON()"><i class="ti ti-download"></i> JSON Export</button>
     <button class="export-btn" onclick="doExport()"><i class="ti ti-printer"></i> Export PDF</button>
-    <span class="badge">v1.5</span>
+    <span class="badge">v1.6</span>
   </div>
 </header>
 
@@ -878,8 +885,27 @@ input[type=range].mseg-slider::-moz-range-thumb{width:16px;height:16px;border-ra
       <button class="modal-close" onclick="closeImportModal()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="import-hint">Accio-Export als JSON kopieren und hier einfügen. Felder werden automatisch gemappt.</div>
-      <textarea class="modal-ta" id="import_json_ta" placeholder='{"title":"Produkt","price":24.99,"cost":8.00,...}' oninput="previewImport()"></textarea>
+      <!-- Tabs -->
+      <div class="import-tabs">
+        <button class="import-tab active" id="itab_paste" onclick="switchImportTab('paste')"><i class="ti ti-clipboard"></i> Einfügen</button>
+        <button class="import-tab" id="itab_file"  onclick="switchImportTab('file')"><i class="ti ti-file-import"></i> Datei</button>
+      </div>
+      <!-- Tab: Einfügen -->
+      <div id="import_pane_paste">
+        <div class="import-hint">Accio-Export als JSON kopieren und hier einfügen.</div>
+        <textarea class="modal-ta" id="import_json_ta" placeholder='{"produktname":"...","vk":29.99,...}' oninput="previewImport()"></textarea>
+      </div>
+      <!-- Tab: Datei -->
+      <div id="import_pane_file" style="display:none">
+        <div class="import-hint">JSON-Datei aus dem FBA-Export auswählen.</div>
+        <label class="file-drop-zone" id="file_drop_zone">
+          <i class="ti ti-file-type-json" style="font-size:28px;color:var(--accent);opacity:.7"></i>
+          <span class="file-drop-text" id="file_drop_text">Datei auswählen oder hierher ziehen</span>
+          <span style="font-size:10px;color:var(--text-muted)">*.json</span>
+          <input type="file" id="import_file_input" accept=".json,application/json" style="display:none" onchange="loadImportFile(this)">
+        </label>
+      </div>
+      <!-- Erkannte Felder -->
       <div class="modal-map" id="import_map">
         <div class="modal-map-head">Erkannte Felder</div>
         <div id="import_map_rows"></div>
@@ -1142,12 +1168,52 @@ let _importData = null;
 
 function openImportModal() {
   document.getElementById('import_modal').classList.add('open');
+  switchImportTab('paste');
   document.getElementById('import_json_ta').focus();
 }
 function closeImportModal() {
   document.getElementById('import_modal').classList.remove('open');
   _importData = null;
 }
+function switchImportTab(tab) {
+  document.getElementById('itab_paste').classList.toggle('active', tab === 'paste');
+  document.getElementById('itab_file').classList.toggle('active',  tab === 'file');
+  document.getElementById('import_pane_paste').style.display = tab === 'paste' ? 'block' : 'none';
+  document.getElementById('import_pane_file').style.display  = tab === 'file'  ? 'block' : 'none';
+}
+function loadImportFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('file_drop_text').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('import_json_ta').value = e.target.result;
+    previewImport();
+  };
+  reader.readAsText(file);
+}
+// Drag & Drop auf die Drop-Zone
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    var zone = document.getElementById('file_drop_zone');
+    if (!zone) return;
+    zone.addEventListener('click', function() { document.getElementById('import_file_input').click(); });
+    zone.addEventListener('dragover',  function(e) { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', function()  { zone.classList.remove('dragover'); });
+    zone.addEventListener('drop', function(e) {
+      e.preventDefault(); zone.classList.remove('dragover');
+      var file = e.dataTransfer.files[0];
+      if (!file) return;
+      document.getElementById('file_drop_text').textContent = file.name;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        document.getElementById('import_json_ta').value = ev.target.result;
+        previewImport();
+      };
+      reader.readAsText(file);
+    });
+  });
+})();
 
 function findVal(obj, keys) {
   const flat = flattenObj(obj);
