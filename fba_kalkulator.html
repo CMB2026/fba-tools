@@ -1359,15 +1359,10 @@ function applyImport() {
 
   calc();
 
-  // KPI-Karten: vorberechnete Werte direkt aus JSON befüllen
-  try {
-    const kpiRoi   = findVal(obj, ['kpi_roi',   'roi_monat',   'roi_monthly',   'roi']);
-    const kpiAmort = findVal(obj, ['kpi_amortisation', 'amortisation', 'amortization', 'payback_months', 'amortisierung']);
-    const kpiBe    = findVal(obj, ['kpi_break_even',   'break_even',   'breakeven',    'break_even_units', 'break_even_stueck']);
-    if (kpiRoi   !== null) document.getElementById('kpi_roi').textContent   = parseFloat(kpiRoi).toFixed(1)   + ' %';
-    if (kpiAmort !== null) document.getElementById('kpi_amort').textContent = parseFloat(kpiAmort).toFixed(1) + ' Mon.';
-    if (kpiBe    !== null) document.getElementById('kpi_be').textContent    = Math.round(parseFloat(kpiBe)).toLocaleString('de-DE') + ' Stk.';
-  } catch(e) { console.warn('KPI import error:', e); }
+  // KPI-Karten: direkt aus JSON-Objekt befüllen (kein findVal)
+  if (obj.kpi_roi          != null) document.getElementById('kpi_roi').textContent   = parseFloat(obj.kpi_roi).toFixed(1)          + ' %';
+  if (obj.kpi_amortisation != null) document.getElementById('kpi_amort').textContent = parseFloat(obj.kpi_amortisation).toFixed(1) + ' Mon.';
+  if (obj.kpi_break_even   != null) document.getElementById('kpi_be').textContent    = Math.round(parseFloat(obj.kpi_break_even)).toLocaleString('de-DE') + ' Stk.';
 
   try { calcAll(); } catch(e) { console.warn('calcAll error:', e); }
 
